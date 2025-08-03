@@ -1,23 +1,13 @@
-# Use official Node.js LTS image
-FROM node:18-alpine
-
-# Set working directory
+FROM node:22-alpine AS builder
 WORKDIR /app
-
-# Copy package.json and yarn.lock
-COPY package.json yarn.lock ./
-
-# Install dependencies
-RUN yarn install --frozen-lockfile
-
-# Copy the rest of the application code
+COPY package.json package-lock.json* ./
+RUN npm install
 COPY . .
+RUN npm run build
 
-# Build the application (uncomment if you have a build step)
-# RUN yarn build
-
-# Expose the port your app runs on
+FROM node:22-alpine AS runner
+WORKDIR /app
+RUN npm i -g serve
+COPY --from=builder /app/dist ./dist
 EXPOSE 3000
-
-# Start the application
-CMD ["yarn", "start"]
+CMD ["serve", "-s", "dist"]
