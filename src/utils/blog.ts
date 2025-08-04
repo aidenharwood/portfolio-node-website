@@ -1,4 +1,4 @@
-import fm, { type FrontMatterResult } from "front-matter";
+import fm from "front-matter";
 import { marked } from "marked";
 import slugify from "slugify";
 
@@ -20,21 +20,16 @@ export interface BlogPostMeta {
 export function getAllPosts(): BlogPostMeta[] {
   return Object.entries(postFiles)
     .map(([file, raw]) => {
-      const { attributes, body } = fm<FrontMatterResult<BlogPostMeta>>(
-        raw as string
-      );
-      const slug = slugify(attributes.attributes.title || file, {
-        lower: true,
-        strict: true,
-      });
+      const { attributes, body } = fm<BlogPostMeta>(raw as string)
+      const slug = slugify(attributes.title || file, { lower: true, strict: true })
       return {
-        title: attributes.attributes.title || file,
-        date: attributes.attributes.date || file.match(/\d{4}-\d{2}-\d{2}/)?.[0] || "",
+        title: attributes.title || file,
+        date: attributes.date || file.match(/\d{4}-\d{2}-\d{2}/)?.[0] || "",
         slug,
-        excerpt: attributes.attributes.excerpt || body.slice(0, 120) + "...",
+        excerpt: attributes.excerpt || body.slice(0, 120) + "...",
         body: marked.parse(body),
         file,
-      };
+      }
     })
     .sort((a, b) => (a.date < b.date ? 1 : -1)); // newest first
 }
