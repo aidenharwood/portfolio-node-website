@@ -1,36 +1,31 @@
-<script setup lang="ts">
+<script setup>
 import { ref } from 'vue'
-const menuOpen = ref(false)
+
+const parentMessage = ref('Parent')
+const links = ref([
+  { icon: 'pi-info-circle', route: '/', name: 'About' },
+  { icon: 'pi-folder-open', route: '/projects', name: 'Projects' },
+  { icon: 'pi-briefcase', route: '/experience', name: 'Experience' }
+])
 </script>
 
 <template>
-  <nav class="w-full flex items-center justify-between px-8 py-4 bg-gray-950/80 shadow-md">
-    <div class="flex items-center gap-2">    
-    </div>
-    <!-- Desktop links -->
-    <div class="hidden md:flex gap-4">
-      <router-link to="/" class="hover:text-primary transition-colors">About</router-link>
-      <!-- <router-link to="/projects" class="hover:text-primary transition-colors">Projects</router-link>
-      <router-link to="/contact" class="hover:text-primary transition-colors">Contact</router-link> -->
-    </div>
-    <!-- Hamburger button (mobile) -->
-    <button
-      class="md:hidden flex flex-col justify-center items-center w-10 h-10"
-      @click="menuOpen = !menuOpen"
-      aria-label="Toggle menu"
-    >
-      <span class="block w-6 h-0.5 bg-white mb-1"></span>
-      <span class="block w-6 h-0.5 bg-white mb-1"></span>
-      <span class="block w-6 h-0.5 bg-white"></span>
-    </button>
-    <!-- Mobile menu -->
-    <div
-      v-if="menuOpen"
-      class="absolute top-16 right-8 bg-gray-950 border border-gray-800 rounded shadow-lg flex flex-col gap-4 p-6 md:hidden z-50"
-    >
-      <router-link to="/" class="hover:text-primary transition-colors" @click="menuOpen = false">About</router-link>
-      <router-link to="/projects" class="hover:text-primary transition-colors" @click="menuOpen = false">Projects</router-link>
-      <router-link to="/contact" class="hover:text-primary transition-colors" @click="menuOpen = false">Contact</router-link>
-    </div>
-  </nav>
+  <section class="flex py-4 px-4 mx-12 content-center justify-center
+    fixed bottom-4 left-0 right-0
+    md:fixed md:top-0  md:bottom-auto md:translate-x-0
+  ">
+    <section :class="`flex justify-around px-4 py-2 shadow-xl justify-items-center content-center text-center space-x-4 bg-slate-800/80 rounded-xl`">
+      <section v-for="link in links" className="flex-1 min-w-[80px] flex flex-col items-center group">
+        <router-link :to="link.route" class="hover:text-slate-400 transition-colors">
+          <i :class="`pi ${link.icon}`"></i>
+        </router-link>
+        <section class="hidden md:block">
+          {{ link.name }}
+          <section
+            className="hidden md:block h-0.5 bg-slate-400 w-0 group-hover:w-1/2 transition-all mx-auto">
+          </section>
+        </section>
+      </section>
+    </section>
+  </section>
 </template>
