@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE_TAG: ${{ github.run_id }}-${{ github.run_number }}
+  IMAGE_NAME: aidenharwood/portfolio/frontend:${{ github.run_id }}-${{ github.run_number }}
 
 jobs:
   build_and_push:
@@ -18,6 +18,14 @@ jobs:
           registry: ghcr.io
           username: ${{ secrets.GHCR_USERNAME }}
           password: ${{ secrets.GHCR_PAT }}
-          image_name: aidenharwood/portfolio/frontend:${{ env.IMAGE_TAG }}
+          image_name: ${{ env.IMAGE_NAME }}
           dockerfile: Dockerfile
           context: .
+
+      - uses: aidenharwood/portfolio-action-helm-update-image@v1
+        with:
+          target_repo: aidenharwood/portfolio-helm-website
+          registry: ghcr.io
+          image_name: ${{ env.IMAGE_NAME }}
+          yaml_file: templates/application.portfolio-frontend.yaml
+          yaml_path: spec.template.spec.containers[0].image
