@@ -28,4 +28,4 @@ jobs:
           registry: ghcr.io
           image_name: ${{ env.IMAGE_NAME }}
           yaml_file: templates/application.portfolio-frontend.yaml
-          yaml_path: spec.template.spec.containers[0].image
+          yaml_path: .spec.template.spec.containers[0].image
