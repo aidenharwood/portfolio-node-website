@@ -13,7 +13,7 @@ jobs:
   build_and_push:
     runs-on: ubuntu-latest
     steps:
-      - uses: aidenharwood/portfolio-action-docker-build-push/action.yaml@v1
+      - uses: aidenharwood/portfolio-action-docker-build-push@v1
         with:
           registry: ghcr.io
           username: ${{ secrets.GHCR_USERNAME }}
