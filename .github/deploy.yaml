@@ -1,0 +1,23 @@
+name: "[Frontend] Build and Push Docker Image"
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  IMAGE_TAG: ${{ github.run_id }}-${{ github.run_number }}
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: portfolio-action-docker-build/action.yaml@v1
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_PAT }}
+          image_name: aidenharwood/portfolio/frontend:${{ env.IMAGE_TAG }}
+          dockerfile: Dockerfile
+          context: .
