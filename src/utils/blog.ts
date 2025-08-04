@@ -23,15 +23,15 @@ export function getAllPosts(): BlogPostMeta[] {
       const { attributes, body } = fm<FrontMatterResult<BlogPostMeta>>(
         raw as string
       );
-      const slug = slugify(attributes.title || file, {
+      const slug = slugify(attributes.attributes.title || file, {
         lower: true,
         strict: true,
       });
       return {
-        title: attributes.title || file,
-        date: attributes.date || file.match(/\d{4}-\d{2}-\d{2}/)?.[0] || "",
+        title: attributes.attributes.title || file,
+        date: attributes.attributes.date || file.match(/\d{4}-\d{2}-\d{2}/)?.[0] || "",
         slug,
-        excerpt: attributes.excerpt || body.slice(0, 120) + "...",
+        excerpt: attributes.attributes.excerpt || body.slice(0, 120) + "...",
         body: marked.parse(body),
         file,
       };
