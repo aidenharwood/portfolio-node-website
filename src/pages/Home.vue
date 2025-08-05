@@ -1,12 +1,11 @@
 <template>
-  <section class="h-200 flex-col justify-stretch w-full">
+  <section class="h-full flex-col justify-stretch w-full">
     <section class="content flex flex-row content-center justify-stretch w-full">
       <section class="text-left w-full flex">
-        <div class=" bg-black rounded-lg shadow-lg font-mono text-left flex flex-col justify-between w-full">
+        <div class=" bg-black rounded-lg shadow-lg font-mono text-left flex flex-col justify-between w-full h-100">
           <!-- Terminal Top Bar -->
           <div class="flex items-center justify-between bg-slate-800 rounded-t-lg px-4 py-2">
-            <span></span>
-            <span>aiden@localhost</span>
+            <span class="text-center w-full">aiden@localhost</span>
             <div class="flex items-center space-x-2">
               <span class="w-3 h-3 bg-green-500 rounded-full inline-block"></span>
               <span class="w-3 h-3 bg-yellow-400 rounded-full inline-block"></span>
@@ -14,14 +13,14 @@
             </div>
           </div>
           <!-- Terminal Content -->
-          <div class="flex px-2 py-2 flex-col justify-between">
-            <div class="terminal-output flex flex-col overflow-y-auto mb-4 max-h-170" ref="outputRef">
+          <div class="flex px-2 py-2 flex-col justify-between h-full overflow-auto">
+            <div class="terminal-output flex flex-col overflow-y-auto h-full max-h-full" ref="outputRef">
               <p v-for="(line, idx) in lines" :key="idx" class="text-green-200 max-w-2xl mx-0" v-html="line"></p>
             </div>
             <div class="mt-4 flex items-center space-x-2">
               <span class="text-green-600 mr-2">aiden@localhost:~/$</span>
               <input v-model="input" @keyup.enter="handleCommand" type="text" placeholder=""
-                class="bg-black border-none outline-none text-green-200 placeholder-green-500 font-mono w-full"
+                class="bg-black border-none outline-none text-green-200 placeholder-green-500 font-mono w-full max-h-full h-full"
                 autofocus />
             </div>
           </div>
@@ -35,9 +34,10 @@
 import { ref, nextTick } from "vue";
 
 const lines = ref([
-  "Hey!",
-  "I'm Aiden!",
-  //   "I am a DevOps engineer with a passion for building scalable and efficient systems. I love working with cloud technologies and automating processes to improve productivity.",
+  "This is a demo of a terminal-like interface.",
+  "You can type commands below.",
+  "Try typing 'echo Hello World!' or 'help' for a list of commands.",
+  "Type 'clear' to clear the terminal.",
 ]);
 const input = ref("");
 const outputRef = ref<HTMLElement | null>(null);
