@@ -1,6 +1,6 @@
 <template>
   <section class="h-200 flex-col justify-stretch w-full">
-    <section class="content flex flex-row content-center justify-stretch w-full h-full">
+    <section class="content flex flex-row content-center justify-stretch w-full">
       <section class="text-left w-full flex">
         <div class=" bg-black rounded-lg shadow-lg font-mono text-left flex flex-col justify-between w-full">
           <!-- Terminal Top Bar -->
@@ -18,7 +18,7 @@
             <div class="terminal-output flex flex-col overflow-y-auto mb-4 max-h-170" ref="outputRef">
               <p v-for="(line, idx) in lines" :key="idx" class="text-green-200 max-w-2xl mx-0" v-html="line"></p>
             </div>
-            <div class="mt-4 flex items-center">
+            <div class="mt-4 flex items-center space-x-2">
               <span class="text-green-600 mr-2">aiden@localhost:~/$</span>
               <input v-model="input" @keyup.enter="handleCommand" type="text" placeholder=""
                 class="bg-black border-none outline-none text-green-200 placeholder-green-500 font-mono w-full"

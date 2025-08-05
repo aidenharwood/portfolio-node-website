@@ -5,7 +5,7 @@
       Welcome to my blog!
     </p>
     <ul>
-      <li v-for="post in getAllPosts()" :key="post.slug">
+      <li v-for="post in posts" :key="post.slug">
         <router-link :to="`/blog/${post.slug}`">
           <section class="flex-col">
             <h1 class="text-slate-300 text-3xl font-bold">{{ post.title }}</h1>
@@ -19,6 +19,10 @@
 </template>
 
 <script setup lang="ts">
-import { getAllPosts } from '@/utils/blog'
-// const posts = getAllPosts()
+import { onMounted, ref } from 'vue'
+import { type BlogPostMeta, getAllPosts } from '@/utils/blog'
+const posts = ref<BlogPostMeta[]>([])
+onMounted(async () => {
+  posts.value = await getAllPosts()
+})
 </script>
