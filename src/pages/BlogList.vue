@@ -5,7 +5,7 @@
       Welcome to my blog!
     </p>
     <ul>
-      <li v-for="post in posts" :key="post.slug">
+      <li v-for="post in posts" :key="post.slug" class="hover:bg-slate-800/50 transition-colors mb-4 p-4 rounded-lg">
         <router-link :to="`/blog/${post.slug}`">
           <section class="flex-col">
             <h1 class="text-slate-300 text-3xl font-bold">{{ post.title }}</h1>

@@ -26,6 +26,11 @@
       /* Images */
       [&_img]:object-cover 
       [&_img]:object-center
+      [&_a]:text-blue-400 
+      [&_a]:hover:text-blue-600
+      [&_h1]:text-2xl 
+      [&_h2]:text-xl 
+      [&_h3]:text-lg
     "></div>
   </section>
   <section v-else>
@@ -34,9 +39,10 @@
 </template>
 
 <script setup lang="ts">
-import {onMounted, ref} from 'vue'
+import { onMounted, onUpdated, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { type BlogPostMeta, fetchPost } from '@/utils/blog'
+import hljs from 'highlight.js'
 const route = useRoute()
 const post = ref<BlogPostMeta | null>()
 
@@ -46,6 +52,10 @@ const updatePost = async () => {
     post.value = fetchedPost
   })
 }
-
-onMounted(updatePost);
+onMounted(() => {
+  updatePost()
+});
+onUpdated(() => {
+  hljs.highlightAll();
+});
 </script>
