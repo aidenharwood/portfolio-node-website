@@ -7,15 +7,13 @@ export interface BlogPostMeta {
   file?: string;
 }
 
-const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:4000";
-
 export async function getAllPosts(): Promise<BlogPostMeta[]> {
-  const res = await fetch(`${apiUrl}/api/posts`);
+  const res = await fetch(`/api/posts`);
   return await res.json();
 }
 
 export async function fetchPost(slug: string): Promise<BlogPostMeta | null> {
-  const res = await fetch(`${apiUrl}/api/posts/${slug}`);
+  const res = await fetch(`/api/posts/${slug}`);
   if (!res.ok) return null;
   return await res.json();
 }
