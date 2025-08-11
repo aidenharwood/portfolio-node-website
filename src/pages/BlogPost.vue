@@ -56,6 +56,14 @@
     [&_blockquote]:border-slate-700 
     [&_blockquote]:pl-4 
     [&_blockquote]:text-slate-400
+    /* Mermaid diagrams */
+    [&_pre.mermaid]:bg-slate-800 
+    [&_pre.mermaid]:text-slate-400 
+    [&_pre.mermaid]:p-4 
+    [&_pre.mermaid]:rounded-lg
+    [&_pre.mermaid]:justify-center 
+    [&_pre.mermaid]:items-center 
+    [&_pre.mermaid]:flex
   "
 ></div>
   </section>
@@ -77,23 +85,52 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUpdated, ref } from 'vue'
+import { onMounted, onUpdated, nextTick, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { type BlogPostMeta, fetchPost } from '@/utils/blog'
 import hljs from 'highlight.js'
 const route = useRoute()
 const post = ref<BlogPostMeta | null>()
 
+// Dynamically import mermaid only on client
+let mermaid: any = null
+const loadMermaid = async () => {
+  if (!mermaid && typeof window !== 'undefined') {
+    mermaid = (await import('mermaid')).default
+    mermaid.initialize({ startOnLoad: false, theme: 'dark' })
+  }
+}
+
+const renderMermaid = async () => {
+  await loadMermaid()
+  if (mermaid) {
+    // Find all mermaid divs and render them
+    const mermaidDivs = document.querySelectorAll('.mermaid')
+    mermaidDivs.forEach((el) => {
+      try {
+        mermaid.run({ nodes: [el as HTMLElement] })
+      } catch (e) {
+        // fallback: show error in the div
+        el.innerHTML = `<pre style="color:red;">Mermaid render error: ${e}</pre>`
+      }
+    })
+  }
+}
+
 const updatePost = async () => {
-  // This will ensure the post is fetched when the component is mounted
-  fetchPost(route.params.slug as string).then(fetchedPost => {
+  fetchPost(route.params.slug as string).then(async fetchedPost => {
     post.value = fetchedPost
+    await nextTick()
+    hljs.highlightAll()
+    await renderMermaid()
   })
 }
-onMounted(() => {
-  updatePost()
-});
-onUpdated(() => {
-  hljs.highlightAll();
-});
+
+onMounted(async () => {
+  await updatePost()
+})
+onUpdated(async () => {
+  hljs.highlightAll()
+  await renderMermaid()
+})
 </script>

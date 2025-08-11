@@ -1,6 +1,7 @@
 @import url("@/assets/styles/hljs-vs-dark.css");
 @import "tailwindcss";
 @import "tw-animate-css";
+@import 'mermaid-js/dist/mermaid.min.css'
 
 /* @import "highlight.js/styles/tokyo-night-dark.css"; */
 
