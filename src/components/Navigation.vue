@@ -23,7 +23,8 @@ import { ref } from 'vue'
 const links = ref([
   { icon: 'pi-home', route: '/', name: 'Home' },
   { icon: 'pi-pen-to-square', route: '/blog', name: 'Blog' },
+  // { icon: 'pi-chart-bar', route: '/observability', name: 'Observability' },
   { icon: 'pi-folder-open', route: '/projects', name: 'Projects' },
-  { icon: 'pi-briefcase', route: '/experience', name: 'Experience' }
+  { icon: 'pi-briefcase', route: '/experience', name: 'Experience' },
 ])
 </script>

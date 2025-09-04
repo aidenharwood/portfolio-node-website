@@ -6,16 +6,26 @@
         <h2 class="text-md font-extralight text-slate-500 w-full">{{ post.date }}</h2>
       </em>
     </section>
-    <div
-  v-html="post.body"
-  class="
+    <div v-html="post.body" class="
     space-y-4
     /* Inline/block code */
+    [&_code]:text-sm 
+    [&_code]:font-mono
     [&_code]:bg-slate-800 
     [&_code]:text-slate-400 
     [&_code]:px-1 
     [&_code]:py-1 
     [&_code]:rounded 
+    /* Code blocks */
+    [&_pre]:text-slate-300 
+    [&_pre]:my-4 
+    [&_pre]:overflow-x-auto 
+    [&_pre]:leading-6
+    [&_pre_div.code-header]:text-xs 
+    [&_pre_div.code-header]:px-2
+    [&_pre_div.code-header]:py-1 
+    [&_pre_div.code-header]:border-b
+    [&_pre_div.code-header]:border-slate-700
     [&_pre]:bg-gray-900 
     [&_pre]:p-4 
     [&_pre]:rounded-2xl
@@ -64,8 +74,7 @@
     [&_pre.mermaid]:justify-center 
     [&_pre.mermaid]:items-center 
     [&_pre.mermaid]:flex
-  "
-></div>
+  "></div>
   </section>
   <section v-else class="w-full">
     <section v-if="post === undefined" class="flex justify-center items-center">
@@ -85,10 +94,14 @@
 </template>
 
 <script setup lang="ts">
+import highlightBicep from '@/lib/highlight.bicep'
 import { onMounted, onUpdated, nextTick, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { type BlogPostMeta, fetchPost } from '@/utils/blog'
 import hljs from 'highlight.js'
+
+hljs.registerLanguage('bicep', highlightBicep)
+
 const route = useRoute()
 const post = ref<BlogPostMeta | null>()
 
