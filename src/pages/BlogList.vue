@@ -16,7 +16,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { type BlogPostMeta, getAllPosts } from '@/utils/blog'
+import { type BlogPostMeta, getAllPosts } from '@/lib/blog'
 const posts = ref<BlogPostMeta[]>([])
 onMounted(async () => {
   posts.value = await getAllPosts()

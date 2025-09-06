@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Navigation from '@/components/Navigation.vue'
 import InfoCard from '@/components/InfoCard.vue'
+import ArgoCDCard from '@/components/ArgoCDCard.vue'
 </script>
 
 <template>
@@ -20,6 +21,7 @@ import InfoCard from '@/components/InfoCard.vue'
          ">
         <router-view class="max-w-full w-full min-w-0 flex-1" />
       </section>
+      <ArgoCDCard />
     </section>
   </main>
 </template>

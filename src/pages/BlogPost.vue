@@ -97,7 +97,7 @@
 import highlightBicep from '@/lib/highlight.bicep'
 import { onMounted, onUpdated, nextTick, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { type BlogPostMeta, fetchPost } from '@/utils/blog'
+import { type BlogPostMeta, fetchPost } from '@/lib/blog'
 import hljs from 'highlight.js'
 
 hljs.registerLanguage('bicep', highlightBicep)
