@@ -14,7 +14,7 @@
 </template>
 <script setup lang="ts">
 import { getBadges, type BadgesResponse } from '@/lib/argocd'
-import { ref, onMounted, onUpdated } from 'vue'
+import { ref, onMounted } from 'vue'
 
 const getIconUrl = (project: string, prefix?: string) => {
   return `https://github.com/cncf/artwork/blob/main/projects/${project}/icon/color/${prefix ?? `${project}-`}icon-color.png?raw=true`
