@@ -24,11 +24,13 @@
 import { ref, onMounted, onBeforeUnmount } from "vue";
 import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
+import { AttachAddon } from "xterm-addon-attach";
 import "xterm/css/xterm.css";
 
 const terminalRef = ref<HTMLElement | null>(null);
 let term: Terminal | null = null;
 let fit: FitAddon | null = null;
+let attach: AttachAddon | null = null;
 let ws: WebSocket | null = null;
 
 onMounted(() => {
@@ -37,12 +39,12 @@ onMounted(() => {
   term = new Terminal({
     cursorBlink: true,
     fontFamily: "monospace",
-    theme: { background: "#000000", foreground: "#008000" },
+    // theme: { background: "#000000", foreground: "#008000" },
   });
   fit = new FitAddon();
   term.loadAddon(fit);
   term.open(terminalRef.value);
-  fit.fit();
+  onResize(); // Calls fit() and sends resize event
 
   const protocol = location.protocol === "https:" ? "wss" : "ws";
   const url = `${protocol}://aidenharwood.uk/k9s`;
@@ -50,27 +52,14 @@ onMounted(() => {
   ws.binaryType = "arraybuffer";
 
   ws.addEventListener("open", () => {
-    // initial message instructs server which pod/container/cmd to exec
-    ws!.send(JSON.stringify({ container: "k9s", cmd: ["k9s", "--readonly", "--splashless"] }));
-    // send size (server may ignore, but it's harmless)
-    ws!.send(JSON.stringify({ type: "resize", cols: term!.cols, rows: term!.rows }));
-  });
-
-  ws.addEventListener("message", (ev) => {
     if (!term) return;
-    if (ev.data instanceof ArrayBuffer) {
-      term.write(new TextDecoder().decode(ev.data));
-    } else if (typeof ev.data === "string") {
-      term.write(ev.data);
-    }
+    ws?.send("");
+    attach = new AttachAddon(ws!);
+    term?.loadAddon(attach!);
   });
 
   ws.addEventListener("close", () => {
     term?.writeln("\r\n-- disconnected --");
-  });
-
-  term.onData((data: any) => {
-    if (ws && ws.readyState === WebSocket.OPEN) ws.send(data);
   });
 
   // handle window/terminal resize
@@ -80,9 +69,6 @@ onMounted(() => {
 function onResize() {
   if (!fit || !term || !ws) return;
   fit.fit();
-  try {
-    ws.send(JSON.stringify({ type: "resize", cols: term.cols, rows: term.rows }));
-  } catch {}
 }
 
 onBeforeUnmount(() => {
