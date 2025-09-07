@@ -39,7 +39,7 @@ onMounted(() => {
   term = new Terminal({
     cursorBlink: true,
     fontFamily: "monospace",
-    // theme: { background: "#000000", foreground: "#008000" },
+    theme: { background: "#000000", foreground: "#008000" },
   });
   fit = new FitAddon();
   term.loadAddon(fit);

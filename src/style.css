@@ -4,6 +4,10 @@
 
 /* @import "highlight.js/styles/tokyo-night-dark.css"; */
 
+.xterm-screen {
+  padding: 10px !important;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
