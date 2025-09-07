@@ -1,5 +1,5 @@
 <template>
-  <section class="h-full flex-col justify-stretch w-full">
+    <section class="h-full flex-col justify-stretch w-full">
     <section class="content flex flex-row content-center justify-stretch w-full">
       <section class="text-left w-full flex">
         <div class=" bg-black rounded-lg shadow-lg font-mono text-left flex flex-col justify-between w-full h-100">
@@ -13,17 +13,7 @@
             </div>
           </div>
           <!-- Terminal Content -->
-          <div class="flex px-2 py-2 flex-col justify-between h-full overflow-auto">
-            <div class="terminal-output flex flex-col overflow-y-auto h-full max-h-full" ref="outputRef">
-              <p v-for="(line, idx) in lines" :key="idx" class="text-green-200 max-w-2xl mx-0" v-html="line"></p>
-            </div>
-            <div class="mt-4 flex items-center space-x-2">
-              <span class="text-green-600 mr-2">aiden@localhost:~/$</span>
-              <input v-model="input" @keyup.enter="handleCommand" type="text" placeholder=""
-                class="bg-black border-none outline-none text-green-200 placeholder-green-500 font-mono w-full max-h-full h-full"
-                autofocus />
-            </div>
-          </div>
+          <div ref="terminalRef" class="h-96 w-full"></div>
         </div>
       </section>
     </section>
@@ -31,40 +21,75 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick } from "vue";
+import { ref, onMounted, onBeforeUnmount } from "vue";
+import { Terminal } from "xterm";
+import { FitAddon } from "xterm-addon-fit";
+import "xterm/css/xterm.css";
 
-const lines = ref([
-  "This is a demo of a terminal-like interface.",
-  "You can type commands below.",
-  "Try typing 'echo Hello World!' or 'help' for a list of commands.",
-  "Type 'clear' to clear the terminal.",
-]);
-const input = ref("");
-const outputRef = ref<HTMLElement | null>(null);
+const terminalRef = ref<HTMLElement | null>(null);
+let term: Terminal | null = null;
+let fit: FitAddon | null = null;
+let ws: WebSocket | null = null;
 
-function handleCommand() {
-  if (input.value.trim() !== "") {
-    lines.value.push(
-      '<span class="text-green-600 mr-2">aiden@localhost:~/$</span>' +
-      input.value +
-      "</span>"
-    );
-    // Example: echo command
-    if (input.value.startsWith("echo ")) {
-      lines.value.push(input.value.slice(5));
-    } else if (input.value === "help") {
-      lines.value.push("Try: echo [text], help, clear");
-    } else if (input.value === "clear") {
-      lines.value = [];
-    } else {
-      lines.value.push("Command not found: " + input.value);
+onMounted(() => {
+  if (!terminalRef.value) return;
+
+  term = new Terminal({
+    cursorBlink: true,
+    fontFamily: "monospace",
+    theme: { background: "#000000", foreground: "#008000" },
+  });
+  fit = new FitAddon();
+  term.loadAddon(fit);
+  term.open(terminalRef.value);
+  fit.fit();
+
+  const protocol = location.protocol === "https:" ? "wss" : "ws";
+  const url = `${protocol}://aidenharwood.uk/k9s`;
+  ws = new WebSocket(url);
+  ws.binaryType = "arraybuffer";
+
+  ws.addEventListener("open", () => {
+    // initial message instructs server which pod/container/cmd to exec
+    ws!.send(JSON.stringify({ container: "k9s", cmd: ["k9s", "--readonly", "--splashless"] }));
+    // send size (server may ignore, but it's harmless)
+    ws!.send(JSON.stringify({ type: "resize", cols: term!.cols, rows: term!.rows }));
+  });
+
+  ws.addEventListener("message", (ev) => {
+    if (!term) return;
+    if (ev.data instanceof ArrayBuffer) {
+      term.write(new TextDecoder().decode(ev.data));
+    } else if (typeof ev.data === "string") {
+      term.write(ev.data);
     }
-    input.value = "";
-    nextTick(() => {
-      if (outputRef.value) {
-        outputRef.value.scrollTop = outputRef.value.scrollHeight;
-      }
-    });
-  }
+  });
+
+  ws.addEventListener("close", () => {
+    term?.writeln("\r\n-- disconnected --");
+  });
+
+  term.onData((data: any) => {
+    if (ws && ws.readyState === WebSocket.OPEN) ws.send(data);
+  });
+
+  // handle window/terminal resize
+  window.addEventListener("resize", onResize);
+});
+
+function onResize() {
+  if (!fit || !term || !ws) return;
+  fit.fit();
+  try {
+    ws.send(JSON.stringify({ type: "resize", cols: term.cols, rows: term.rows }));
+  } catch {}
 }
+
+onBeforeUnmount(() => {
+  window.removeEventListener("resize", onResize);
+  try { ws?.close(); } catch {}
+  term?.dispose();
+  term = null;
+  fit = null;
+});
 </script>

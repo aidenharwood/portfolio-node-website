@@ -40,8 +40,5 @@ const badges = ref<BadgesResponse[] | null>()
 onMounted(async () => {
   badges.value = await getBadges()
 })
-onUpdated(async () => {
-  badges.value = await getBadges()
-})
 
 </script>
