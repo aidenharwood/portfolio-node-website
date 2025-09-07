@@ -1,5 +1,5 @@
 <template>
-    <section class="h-full flex-col justify-stretch w-full">
+  <section class="h-full flex-col justify-stretch w-full">
     <section class="content flex flex-row content-center justify-stretch w-full">
       <section class="text-left w-full flex">
         <div class=" bg-black rounded-lg shadow-lg font-mono text-left flex flex-col justify-between w-full h-100">
@@ -53,17 +53,49 @@ onMounted(() => {
 
   ws.addEventListener("open", () => {
     if (!term) return;
-    ws?.send(JSON.stringify({ type: "resize", cols: term.cols, rows: term.rows }));
-    attach = new AttachAddon(ws!);
-    term?.loadAddon(attach!);
-  });
 
-  ws.addEventListener("close", () => {
-    term?.writeln("\r\n-- disconnected --");
-  });
+    // send explicit init so server will exec k9s for this session
+    try {
+      ws?.send(JSON.stringify({ type: "init", cols: term.cols, rows: term.rows }));
+    } catch {}
 
-  // handle window/terminal resize
-  window.addEventListener("resize", onResize);
+    // log first server frame (hex) for debugging, then attach xterm
+    const onFirst = async (ev: MessageEvent) => {
+      try {
+        // normalize to Uint8Array
+        let bytes: Uint8Array;
+        if (ev.data instanceof ArrayBuffer) bytes = new Uint8Array(ev.data);
+        else if (ev.data instanceof Blob) {
+          const buf = await ev.data.arrayBuffer();
+          bytes = new Uint8Array(buf);
+        } else if (typeof ev.data === "string") {
+          bytes = new TextEncoder().encode(ev.data);
+        } else {
+          bytes = new Uint8Array(0);
+        }
+
+        // debug: print first ~64 bytes as hex to console
+        const hex = Array.from(bytes.slice(0, 64)).map(b => b.toString(16).padStart(2, "0")).join("");
+        console.log("k9s first frame hex:", hex);
+
+        // now attach xterm so it receives subsequent binary frames
+        attach = new AttachAddon(ws!);
+        term?.loadAddon(attach!);
+
+        // ensure sizing is correct immediately after attach
+        fit?.fit();
+        try { ws!.send(JSON.stringify({ type: "resize", cols: term!.cols, rows: term!.rows })); } catch {}
+
+        term?.focus();
+      } catch (e) {
+        console.error("attach/onFirst failed", e);
+      } finally {
+        ws?.removeEventListener("message", onFirst);
+      }
+    };
+
+    ws?.addEventListener("message", onFirst);
+  });
 });
 
 function onResize() {
@@ -73,7 +105,7 @@ function onResize() {
 
 onBeforeUnmount(() => {
   window.removeEventListener("resize", onResize);
-  try { ws?.close(); } catch {}
+  try { ws?.close(); } catch { }
   term?.dispose();
   term = null;
   fit = null;
