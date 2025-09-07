@@ -53,7 +53,7 @@ onMounted(() => {
 
   ws.addEventListener("open", () => {
     if (!term) return;
-    ws?.send("");
+    ws?.send(JSON.stringify({ type: "resize", cols: term.cols, rows: term.rows }));
     attach = new AttachAddon(ws!);
     term?.loadAddon(attach!);
   });
