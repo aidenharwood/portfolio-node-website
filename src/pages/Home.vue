@@ -42,30 +42,36 @@ onMounted(() => {
     fontFamily: "monospace",
     theme: { background: "#000000", foreground: "#008000" },
   });
-  fit = new FitAddon();
-  term.loadAddon(fit);
   term.open(terminalRef.value);
-  // attach, fit and focus
-  fit?.fit();
-  term?.focus();
 
   const protocol = location.protocol === "https:" ? "wss" : "ws";
   const url = `${protocol}://aidenharwood.uk/k9s`;
   ws = new WebSocket(url);
   ws.binaryType = "arraybuffer";
-  attach = new AttachAddon(ws!);
-  term?.loadAddon(attach!);
+
+  window.addEventListener("resize", onResize);
 
   ws.addEventListener("open", () => {
     if (!term) return;
-    try {
-    } catch (e) {
-      console.error("attach/onFirst failed", e);
-    }
+    // attach
+    attach = new AttachAddon(ws as any);
+    term.loadAddon(attach);
+    // fit
+    fit = new FitAddon();
+    term.loadAddon(fit);
+    fit?.fit();
+    // focus
+    term?.focus();
   });
 });
 
+function onResize() {
+  if (!fit || !term || !ws) return;
+  fit.fit();
+}
+
 onBeforeUnmount(() => {
+  window.removeEventListener("resize", onResize);
   try { ws?.close(); } catch { }
   term?.dispose();
   term = null;
