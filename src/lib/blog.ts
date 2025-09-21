@@ -4,6 +4,7 @@ export interface BlogPostMeta {
   slug: string;
   excerpt?: string;
   body?: string;
+  rawContent?: string;
   file?: string;
 }
 
