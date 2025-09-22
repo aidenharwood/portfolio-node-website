@@ -2,7 +2,7 @@
 import { onMounted } from 'vue'
 import Navigation from '@/components/Navigation.vue'
 import InfoCard from '@/components/InfoCard.vue'
-import ArgoCDCard from '@/components/ArgoCDCard.vue'
+// import ArgoCDCard from '@/components/ArgoCDCard.vue'
 import { useTheme } from '@/composables/useTheme'
 
 // Initialize theme on app startup

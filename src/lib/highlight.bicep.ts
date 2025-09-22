@@ -1,11 +1,6 @@
-interface HLJS {
-    COMMENT: (begin: string, end?: string, options?: any) => object;
-    QUOTE_STRING_MODE: object;
-    APOS_STRING_MODE: object;
-    inherit: (parent: object, override: object) => object;
-}
+import type { HLJSApi } from 'highlight.js';
 
-const bicepHighlight = (hljs: HLJS) => {
+const bicepHighlight = (hljs: HLJSApi) => {
     return {
         name: 'Bicep',
         case_insensitive: false,
