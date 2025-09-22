@@ -19,7 +19,7 @@ onMounted(() => {
     <Navigation />
     <section
       class="lg:flex w-full lg:space-y-0 space-y-10 justify-items-center justify-center items-start">
-      <section class="lg:flex-col flex lg:space-y-10 space-y-0">
+      <section class="lg:flex-col lg:space-y-10 space-y-0">
         <InfoCard />
         <v-if v-if="$route.path === '/'">
           <ArgoCDCard />
