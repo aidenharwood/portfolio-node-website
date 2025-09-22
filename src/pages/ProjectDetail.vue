@@ -31,15 +31,15 @@
           </div>
 
           <!-- Action Buttons -->
-          <div class="flex items-center gap-3 ml-6">
+          <div class="flex-col lg:flex space-y-4 items-center gap-3 ml-6">
             <a v-if="project.github" :href="project.github" target="_blank" rel="noopener noreferrer"
-              class="inline-flex items-center px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors">
+              class="inline-flex w-full items-center px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors">
               <i class="pi pi-github mr-2"></i>
               GitHub
             </a>
 
             <a v-if="project.demo" :href="project.demo" target="_blank" rel="noopener noreferrer"
-              class="inline-flex items-center px-4 py-2 bg-accent text-accent-foreground rounded-lg hover:bg-accent/90 transition-colors">
+              class="inline-flex w-full items-center px-4 py-2 bg-accent text-accent-foreground rounded-lg hover:bg-accent/90 transition-colors">
               <i class="pi pi-external-link mr-2"></i>
               Live Demo
             </a>
