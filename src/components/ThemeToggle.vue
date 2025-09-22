@@ -1,7 +1,7 @@
 <template>
   <button
     @click="toggleTheme"
-    class="theme-toggle group relative p-2 rounded-full transition-all duration-300 hover:bg-accent/10 hover:scale-110"
+    class="theme-toggle group relative p-2 rounded-full transition-all duration-300 hover:bg-accent/10 hover:scale-110 flex items-center justify-center"
     :title="theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
     aria-label="Toggle theme"
   >
@@ -16,7 +16,7 @@
     >
       <i
         v-if="theme === 'light'"
-        class="pi pi-sun w-5 h-5 text-yellow-500 absolute inset-2"
+        class="pi pi-sun w-5 h-5 text-yellow-500"
       />
     </transition>
 
@@ -31,7 +31,7 @@
     >
       <i
         v-if="theme === 'dark'"
-        class="pi pi-moon w-5 h-5 text-blue-400 absolute inset-2"
+        class="pi pi-moon w-5 h-5 text-blue-400"
       />
     </transition>
 

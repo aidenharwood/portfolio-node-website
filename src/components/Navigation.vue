@@ -32,14 +32,6 @@
           </router-link>
         </div>
       </div>
-      
-      <!-- Divider -->
-      <div class="hidden lg:block w-px h-6 bg-border/50 mx-3"></div>
-      
-      <!-- Theme toggle -->
-      <div class="flex items-center">
-        <ThemeToggle />
-      </div>
     </nav>
   </section>
 </template>
@@ -47,7 +39,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
-import ThemeToggle from './ThemeToggle.vue';
 
 const route = useRoute();
 
