@@ -7,27 +7,33 @@
 
     <!-- Blog Posts Grid -->
     <div class="space-y-6">
-      <article 
-        v-for="post in posts" 
-        :key="post.slug" 
-        class="group bg-card border border-border rounded-xl p-6 hover:shadow-lg hover:border-accent/50 transition-all duration-300"
-      >
+      <article v-for="post in posts" :key="post.slug"
+        class="group bg-card border border-border rounded-xl p-6 hover:shadow-lg hover:border-accent/50 transition-all duration-300">
         <router-link :to="`/blog/${post.slug}`" class="block">
           <div class="space-y-3">
             <!-- Post Title -->
             <h2 class="text-2xl font-bold text-foreground group-hover:text-accent transition-colors">
               {{ post.title }}
             </h2>
-            
-            <!-- Post Date -->
-             <i class="pi pi-calendar mr-1.5 text-xs"></i>
-            <time>{{ formatDate(post.date) }}</time>
-            
+
+            <!-- Meta -->
+            <section class="flex flex-wrap items-center text-sm text-muted-foreground">
+              <!-- Post Date -->
+              <i class="pi pi-calendar mr-1.5 text-xs"></i>
+              <time>{{ formatDate(post.date) }}</time>
+
+              <!-- Spacer -->
+              <span class="inline-block w-4" />
+
+              <!-- Read Time -->
+              <i class="pi pi-clock mr-1.5 text-xs"></i>
+              <time>{{ getReadTime(post.rawContent || '') }} min read</time>
+            </section>
             <!-- Post Excerpt -->
             <p class="text-muted-foreground leading-relaxed line-clamp-3">
               {{ post.excerpt }}
             </p>
-            
+
             <!-- Read More Link -->
             <div class="flex items-center text-accent font-medium group-hover:text-accent/80 transition-colors">
               <span>Read more</span>
@@ -52,7 +58,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { type BlogPostMeta, getAllPosts } from '@/lib/blog'
-import { formatDate } from '@/lib/utils'
+import { formatDate, getReadTime } from '@/lib/utils'
 
 const posts = ref<BlogPostMeta[]>([])
 

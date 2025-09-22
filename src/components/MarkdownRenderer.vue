@@ -1,5 +1,75 @@
 <template>
-  <div class="markdown-content" v-html="processedContent" ref="contentRef"></div>
+  <div class="
+        space-y-4
+        /* Inline/block code */
+        [&_code]:text-sm 
+        [&_code]:font-mono
+        [&_code]:bg-secondary
+        [&_code]:text-secondary-foreground
+        [&_code]:px-1 
+        [&_code]:py-1 
+        [&_code]:rounded 
+        /* Code blocks */
+        [&_pre]:text-foreground
+        [&_pre]:my-4 
+        [&_pre]:overflow-x-auto 
+        [&_pre]:leading-6
+        [&_pre_div.code-header]:text-xs 
+        [&_pre_div.code-header]:px-2
+        [&_pre_div.code-header]:py-1 
+        [&_pre_div.code-header]:border-b
+        [&_pre_div.code-header]:border-border
+        [&_pre]:bg-muted
+        [&_pre]:border
+        [&_pre]:border-border
+        [&_pre]:p-4 
+        [&_pre]:rounded-2xl
+        [&_pre_code]:block 
+        [&_pre_code]:w-full
+        [&_pre_code]:bg-transparent 
+        [&_pre_code]:overflow-x-auto 
+        /* List items */
+        [&_ul]:list-disc 
+        [&_ol]:list-decimal 
+        [&_li]:text-foreground
+        [&_li]:px-2 
+        [&_li]:ml-6
+        /* Tables */
+        [&_table]:w-full 
+        [&_table]:text-left 
+        [&_th]:bg-secondary
+        [&_th]:text-secondary-foreground
+        [&_th]:px-2 
+        [&_th]:py-2
+        [&_td]:px-2 
+        [&_td]:py-2
+        [&_tr]:border-b 
+        [&_tr]:border-border
+        /* Images */
+        [&_img]:mx-auto
+        [&_img]:object-cover 
+        [&_img]:object-center
+        [&_a]:text-accent
+        [&_a]:hover:text-accent/80
+        [&_h1]:text-2xl 
+        [&_h2]:text-xl 
+        [&_h3]:text-lg
+        [&_h4]:text-base 
+        [&_h5]:text-sm 
+        [&_h6]:text-xs
+        [&_blockquote]:border-l-4 
+        [&_blockquote]:border-border
+        [&_blockquote]:pl-4 
+        [&_blockquote]:text-muted-foreground
+        /* Mermaid diagrams */
+        [&_pre.mermaid]:bg-muted
+        [&_pre.mermaid]:text-foreground
+        [&_pre.mermaid]:p-4 
+        [&_pre.mermaid]:rounded-lg
+        [&_pre.mermaid]:justify-center 
+        [&_pre.mermaid]:items-center 
+        [&_pre.mermaid]:flex" 
+        v-html="processedContent" ref="contentRef"></div>
 </template>
 
 <script setup lang="ts">

@@ -1,92 +1,29 @@
 <template>
-  <section v-if="post">
+  <section class="space-y-4" v-if="post">
     <section class="items-center justify-start gap-x-4">
       <!-- Back Button -->
-      <router-link 
-        to="/blog" 
-        class="inline-flex items-center text-muted-foreground hover:text-accent transition-colors mb-6"
-      >
+      <router-link to="/blog"
+        class="inline-flex items-center text-muted-foreground hover:text-accent transition-colors mb-6">
         <i class="pi pi-chevron-left mr-2"></i>
         Back to Blog
       </router-link>
       <h1 class="text-3xl font-bold w-full">{{ post.title }}</h1>
-      <i class="pi pi-calendar mr-1.5 text-xs"></i>
-      <time>{{ formatDate(post.date) }}</time>
+
+      <section class="flex flex-wrap items-center text-sm text-muted-foreground space-x-4">
+        <span>
+          <i class="pi pi-calendar mr-1.5 text-xs"></i>
+        <time>{{ formatDate(post.date) }}</time>
+        </span>
+        <span class="text-xs">•</span>
+        <span>
+                  <i class="pi pi-clock mr-1.5 text-xs"></i>
+        <span class="text-sm">{{ getReadTime(post.rawContent || '') }} min read</span>
+
+        </span>
+      </section>
     </section>
-    <MarkdownRenderer 
-      :content="post.rawContent || ''" 
-      class="
-        space-y-4
-        /* Inline/block code */
-        [&_code]:text-sm 
-        [&_code]:font-mono
-        [&_code]:bg-secondary
-        [&_code]:text-secondary-foreground
-        [&_code]:px-1 
-        [&_code]:py-1 
-        [&_code]:rounded 
-        /* Code blocks */
-        [&_pre]:text-foreground
-        [&_pre]:my-4 
-        [&_pre]:overflow-x-auto 
-        [&_pre]:leading-6
-        [&_pre_div.code-header]:text-xs 
-        [&_pre_div.code-header]:px-2
-        [&_pre_div.code-header]:py-1 
-        [&_pre_div.code-header]:border-b
-        [&_pre_div.code-header]:border-border
-        [&_pre]:bg-muted
-        [&_pre]:border
-        [&_pre]:border-border
-        [&_pre]:p-4 
-        [&_pre]:rounded-2xl
-        [&_pre_code]:block 
-        [&_pre_code]:w-full
-        [&_pre_code]:bg-transparent 
-        [&_pre_code]:overflow-x-auto 
-        /* List items */
-        [&_ul]:list-disc 
-        [&_ol]:list-decimal 
-        [&_li]:text-foreground
-        [&_li]:px-2 
-        [&_li]:ml-6
-        /* Tables */
-        [&_table]:w-full 
-        [&_table]:text-left 
-        [&_th]:bg-secondary
-        [&_th]:text-secondary-foreground
-        [&_th]:px-2 
-        [&_th]:py-2
-        [&_td]:px-2 
-        [&_td]:py-2
-        [&_tr]:border-b 
-        [&_tr]:border-border
-        /* Images */
-        [&_img]:mx-auto
-        [&_img]:object-cover 
-        [&_img]:object-center
-        [&_a]:text-accent
-        [&_a]:hover:text-accent/80
-        [&_h1]:text-2xl 
-        [&_h2]:text-xl 
-        [&_h3]:text-lg
-        [&_h4]:text-base 
-        [&_h5]:text-sm 
-        [&_h6]:text-xs
-        [&_blockquote]:border-l-4 
-        [&_blockquote]:border-border
-        [&_blockquote]:pl-4 
-        [&_blockquote]:text-muted-foreground
-        /* Mermaid diagrams */
-        [&_pre.mermaid]:bg-muted
-        [&_pre.mermaid]:text-foreground
-        [&_pre.mermaid]:p-4 
-        [&_pre.mermaid]:rounded-lg
-        [&_pre.mermaid]:justify-center 
-        [&_pre.mermaid]:items-center 
-        [&_pre.mermaid]:flex
-      " 
-    />
+    <MarkdownRenderer :content="post.rawContent || ''" class="
+      " />
   </section>
   <section v-else class="w-full">
     <section v-if="post === undefined" class="flex justify-center items-center">
@@ -95,9 +32,17 @@
         <span class="text-slate-400 text-lg">Loading post...</span>
       </div>
     </section>
-    <section v-else class="text-center font-bold text-5xl">
-      Content not found
-      <slot />
+    <section v-else class="w-full max-w-4xl mx-auto text-center py-12">
+      <div class="text-muted-foreground">
+        <i class="pi pi-file-excel text-4xl block mx-auto mb-4"></i>
+        <h1 class="text-2xl font-bold mb-2">Blog Not Found</h1>
+        <p class="mb-6">The blog post you're looking for doesn't exist.</p>
+        <router-link to="/blog"
+          class="inline-flex items-center px-4 py-2 bg-accent text-accent-foreground rounded-lg hover:bg-accent/90 transition-colors">
+          <i class="pi pi-chevron-left mr-2"></i>
+          Back to Blog
+        </router-link>
+      </div>
     </section>
   </section>
 </template>
@@ -107,7 +52,7 @@ import highlightBicep from '@/lib/highlight.bicep'
 import { onMounted, onUpdated, nextTick, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { type BlogPostMeta, fetchPost } from '@/lib/blog'
-import { formatDate } from '@/lib/utils'
+import { formatDate, getReadTime } from '@/lib/utils'
 import MarkdownRenderer from '@/components/MarkdownRenderer.vue'
 import hljs from 'highlight.js'
 
