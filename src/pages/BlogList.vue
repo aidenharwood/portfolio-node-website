@@ -20,9 +20,8 @@
             </h2>
             
             <!-- Post Date -->
-            <time class="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-              {{ formatDate(post.date) }}
-            </time>
+             <i class="pi pi-calendar mr-1.5 text-xs"></i>
+            <time>{{ formatDate(post.date) }}</time>
             
             <!-- Post Excerpt -->
             <p class="text-muted-foreground leading-relaxed line-clamp-3">
@@ -32,9 +31,7 @@
             <!-- Read More Link -->
             <div class="flex items-center text-accent font-medium group-hover:text-accent/80 transition-colors">
               <span>Read more</span>
-              <svg class="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-              </svg>
+              <i class="pi pi-chevron-right ml-1 transform group-hover:translate-x-1 transition-transform"></i>
             </div>
           </div>
         </router-link>
@@ -44,9 +41,7 @@
     <!-- Empty State -->
     <div v-if="posts.length === 0" class="text-center py-12">
       <div class="text-muted-foreground">
-        <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-        </svg>
+        <i class="pi pi-file-o text-4xl block mx-auto mb-4"></i>
         <h3 class="text-lg font-medium mb-2">No posts yet</h3>
         <p>Check back soon for new content!</p>
       </div>

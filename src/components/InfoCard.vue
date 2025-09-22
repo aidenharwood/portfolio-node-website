@@ -1,6 +1,6 @@
 <template>
   <section
-    class="flex overflow-clip lg:flex-col px-2 lg:px-6 lg:py-6 text-center bg-card border border-border rounded-2xl shadow-2xl justify-items-center justify-content-center transition-colors duration-300">
+    class="w-full flex overflow-clip lg:flex-col px-2 lg:px-6 lg:py-6 text-center bg-card border border-border rounded-2xl shadow-2xl justify-items-center justify-content-center transition-colors duration-300">
     <img src="https://avatars.githubusercontent.com/u/1979974" alt="Aiden Harwood avatar"
       class="relative lg:static shadow-2xl lg:flex-col -left-3 float w-40 lg:w-60 object-cover rounded-r-full lg:rounded-full lg:mb-5 aspect-square" />
     <section class="flex-col content-center justify-center items-center w-full mr-3 lg:mr-0">

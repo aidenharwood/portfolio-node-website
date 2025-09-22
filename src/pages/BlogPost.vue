@@ -6,15 +6,12 @@
         to="/blog" 
         class="inline-flex items-center text-muted-foreground hover:text-accent transition-colors mb-6"
       >
-        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-        </svg>
+        <i class="pi pi-chevron-left mr-2"></i>
         Back to Blog
       </router-link>
       <h1 class="text-3xl font-bold w-full">{{ post.title }}</h1>
-      <em>
-        <h2 class="text-md font-extralight text-slate-500 w-full">{{ formatDate(post.date) }}</h2>
-      </em>
+      <i class="pi pi-calendar mr-1.5 text-xs"></i>
+      <time>{{ formatDate(post.date) }}</time>
     </section>
     <MarkdownRenderer 
       :content="post.rawContent || ''" 
@@ -94,10 +91,7 @@
   <section v-else class="w-full">
     <section v-if="post === undefined" class="flex justify-center items-center">
       <div class="flex flex-col items-center justify-center gap-2">
-        <svg class="animate-spin h-10 w-10 text-slate-400" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-        </svg>
+        <i class="pi pi-spin pi-spinner text-2xl text-slate-400"></i>
         <span class="text-slate-400 text-lg">Loading post...</span>
       </div>
     </section>
