@@ -4,384 +4,333 @@
     <div class="flex items-center justify-between bg-secondary rounded-t-lg px-4 py-2 flex-shrink-0">
       <span class="text-center w-full text-secondary-foreground">{{ title }}</span>
       <div class="flex items-center space-x-2">
-        <span class="w-3 h-3 bg-green-500 rounded-full"></span>
+        <button 
+          @click="refreshSession"
+          class="text-secondary-foreground hover:text-primary text-sm"
+          title="Refresh terminal session"
+        >
+          🔄
+        </button>
+        <span class="w-3 h-3 rounded-full" :class="connectionStatusClass"></span>
         <span class="w-3 h-3 bg-yellow-400 rounded-full"></span>
         <span class="w-3 h-3 bg-red-500 rounded-full"></span>
       </div>
     </div>
     <!-- Terminal Content -->
-    <div ref="terminalRef" class="terminal-content flex-1 min-h-0"></div>
+    <div class="terminal-content flex-1 min-h-0 relative">
+      <!-- Loading State -->
+      <div 
+        v-if="isLoading" 
+        class="absolute inset-0 flex items-center justify-center bg-background/90 z-10"
+      >
+        <div class="text-center">
+          <div class="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
+          <p class="text-muted-foreground">{{ loadingMessage }}</p>
+        </div>
+      </div>
+      
+      <!-- Error State -->
+      <div 
+        v-else-if="error" 
+        class="absolute inset-0 flex items-center justify-center bg-background/90 z-10"
+      >
+        <div class="text-center p-4">
+          <div class="text-red-500 text-4xl mb-2">⚠️</div>
+          <p class="text-red-600 font-semibold mb-2">Terminal Error</p>
+          <p class="text-muted-foreground mb-4">{{ error }}</p>
+          <button 
+            @click="createSession"
+            class="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+      
+      <!-- ttyd Web Terminal -->
+      <iframe
+        v-else-if="terminalUrl"
+        ref="terminalIframe"
+        :src="terminalUrl"
+        class="w-full h-full border-none"
+        @load="onIframeLoad"
+        @error="onIframeError"
+      />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch } from "vue";
-import { Terminal } from "xterm";
-import { FitAddon } from "xterm-addon-fit";
-import { useTheme } from '@/composables/useTheme';
-import "xterm/css/xterm.css";
+import { ref, onMounted, onBeforeUnmount, computed } from "vue";
 
 interface Props {
   title?: string;
-  websocketUrl?: string;
+  apiUrl?: string;
+  sessionId?: string;
   height?: string;
-  fontFamily?: string;
-  cursorStyle?: 'block' | 'underline' | 'bar';
-  cursorBlink?: boolean;
+  autoCreate?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   title: 'aiden@localhost',
-  websocketUrl: `wss://aidenharwood.uk/k9s`,
+  apiUrl: 'https://aidenharwood.uk/api/ttyd',
   height: '100%',
-  fontFamily: 'monospace',
-  cursorStyle: 'bar',
-  cursorBlink: true
+  autoCreate: true
 });
 
-const terminalRef = ref<HTMLElement | null>(null);
-let term: Terminal | null = null;
-let fit: FitAddon | null = null;
-let ws: WebSocket | null = null;
+// Reactive state
+const terminalUrl = ref<string>('');
+const sessionId = ref<string>('');
+const isLoading = ref<boolean>(true);
+const error = ref<string>('');
+const loadingMessage = ref<string>('Initializing terminal...');
+const terminalIframe = ref<HTMLIFrameElement | null>(null);
 
-const { theme } = useTheme();
+// Keepalive state
+let keepaliveInterval: number | null = null;
 
-// Theme-aware terminal colors
-const getTerminalTheme = (currentTheme: 'light' | 'dark') => {
-  if (currentTheme === 'light') {
-    return {
-      background: '#f4f3f2',
-      foreground: '#2d2a27',
-      cursor: '#2d2a27',
-      cursorAccent: '#f4f3f2',
-      selection: '#8a847a',
-      black: '#2d2a27',
-      red: '#d73527',
-      green: '#22863a',
-      yellow: '#b08800',
-      blue: '#0366d6',
-      magenta: '#6f42c1',
-      cyan: '#1b7c83',
-      white: '#6a737d',
-      brightBlack: '#959da5',
-      brightRed: '#cb2431',
-      brightGreen: '#28a745',
-      brightYellow: '#f9c513',
-      brightBlue: '#2188ff',
-      brightMagenta: '#8b5cf6',
-      brightCyan: '#17a2b8',
-      brightWhite: '#24292e'
-    };
-  } else {
-    return {
-      background: '#1a1917',
-      foreground: '#e8e6e3',
-      cursor: '#e8e6e3',
-      cursorAccent: '#1a1917',
-      selection: '#4a4845',
-      black: '#1a1917',
-      red: '#f14c4c',
-      green: '#23d18b',
-      yellow: '#f5e094',
-      blue: '#3b82f6',
-      magenta: '#a855f7',
-      cyan: '#06b6d4',
-      white: '#d1d5db',
-      brightBlack: '#6b7280',
-      brightRed: '#ef4444',
-      brightGreen: '#10b981',
-      brightYellow: '#f59e0b',
-      brightBlue: '#60a5fa',
-      brightMagenta: '#c084fc',
-      brightCyan: '#22d3ee',
-      brightWhite: '#f9fafb'
-    };
-  }
-};
+// Computed properties
+const connectionStatusClass = computed(() => {
+  if (error.value) return 'bg-red-500';
+  if (isLoading.value) return 'bg-yellow-500 animate-pulse';
+  if (terminalUrl.value) return 'bg-green-500';
+  return 'bg-gray-500';
+});
 
-const initializeTerminal = () => {
-  if (!terminalRef.value) return;
-
-  term = new Terminal({
-    cursorStyle: props.cursorStyle,
-    cursorBlink: props.cursorBlink,
-    fontFamily: props.fontFamily,
-    fontSize: 14,
-    theme: getTerminalTheme(theme.value),
-    // Terminal capabilities for TUI applications like k9s
-    cols: 80,
-    rows: 24,
-    scrollback: 1000,
-    allowTransparency: false,
-    altClickMovesCursor: false,
-    convertEol: false,
-    disableStdin: false,
-    macOptionIsMeta: true,
-    rightClickSelectsWord: false,
-    screenReaderMode: false,
-    windowsMode: false,
-    wordSeparator: ' ()[]{}\'"',
-    // Enable proper escape sequence handling
-    allowProposedApi: true,
-  });
-  
-  term.open(terminalRef.value);
-
-  // Set up fit addon
-  fit = new FitAddon();
-  term.loadAddon(fit);
-  
-  // Connect to WebSocket if URL is provided
-  if (props.websocketUrl) {
-    connectWebSocket();
-  } else {
-    // If no WebSocket, show a demo terminal
-    term.writeln('Welcome to the terminal!');
-    term.writeln('WebSocket URL not provided - this is a demo terminal.');
-    term.write('$ ');
+// API functions
+const createSession = async (): Promise<void> => {
+  try {
+    isLoading.value = true;
+    loadingMessage.value = 'Creating terminal session...';
+    error.value = '';
     
-    // Simple demo input handling
-    term.onKey(({ key, domEvent }) => {
-      if (!term) return;
-      
-      if (domEvent.keyCode === 13) { // Enter key
-        term.writeln('');
-        term.write('$ ');
-      } else if (domEvent.keyCode === 8) { // Backspace
-        term.write('\b \b');
-      } else {
-        term.write(key);
-      }
+    const response = await fetch(`${props.apiUrl}/sessions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
-  }
-  
-  // Simple delayed fit
-  setTimeout(() => {
-    if (fit && term) {
-      fit.fit();
-      term.focus();
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
-  }, 100);
+    
+    const data = await response.json();
+    
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to create session');
+    }
+    
+    sessionId.value = data.session.sessionId;
+    terminalUrl.value = data.session.webUrl;
+    
+    console.log('Terminal session created:', {
+      sessionId: sessionId.value,
+      webUrl: terminalUrl.value
+    });
+    
+    // Start keepalive for new sessions
+    startKeepalive();
+    
+  } catch (err) {
+    console.error('Failed to create terminal session:', err);
+    error.value = err instanceof Error ? err.message : 'Failed to create terminal session';
+  } finally {
+    isLoading.value = false;
+  }
 };
 
-const connectWebSocket = () => {
-  if (!props.websocketUrl || !term) return;
+const getOrCreateSession = async (id?: string): Promise<void> => {
+  try {
+    isLoading.value = true;
+    loadingMessage.value = id ? 'Retrieving terminal session...' : 'Creating terminal session...';
+    error.value = '';
+    
+    const url = id ? `${props.apiUrl}/sessions/${id}` : `${props.apiUrl}/sessions`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to get session');
+    }
+    
+    sessionId.value = data.session.sessionId;
+    terminalUrl.value = data.session.webUrl;
+    
+    console.log('Terminal session retrieved:', {
+      sessionId: sessionId.value,
+      webUrl: terminalUrl.value
+    });
+    
+    // Start keepalive for existing sessions
+    startKeepalive();
+    
+  } catch (err) {
+    console.error('Failed to get terminal session:', err);
+    error.value = err instanceof Error ? err.message : 'Failed to get terminal session';
+  } finally {
+    isLoading.value = false;
+  }
+};
 
-  console.log('Attempting to connect to:', props.websocketUrl);
+const destroySession = async (): Promise<void> => {
+  if (!sessionId.value) return;
+  
+  // Stop keepalive first
+  stopKeepalive();
   
   try {
-    ws = new WebSocket(props.websocketUrl);
-    ws.binaryType = "arraybuffer";
+    const response = await fetch(`${props.apiUrl}/sessions/${sessionId.value}`, {
+      method: 'DELETE',
+    });
     
-    console.log('WebSocket created, readyState:', ws.readyState);
-
-    ws.addEventListener("open", () => {
-      console.log('WebSocket OPEN event fired');
-      console.log('WebSocket readyState:', ws?.readyState);
-      if (!term || !fit) {
-        console.log('Terminal or fit not ready:', { term: !!term, fit: !!fit });
-        return;
-      }
-      
-      // Handle WebSocket messages manually (don't use AttachAddon)
-      ws!.addEventListener("message", (event) => {
-        if (!term) return;
-        
-        console.log('Received WebSocket message:', event.data);
-        
-        // Handle both string and ArrayBuffer data
-        if (typeof event.data === 'string') {
-          console.log('Writing string to terminal:', event.data);
-          term.write(event.data);
-        } else if (event.data instanceof ArrayBuffer) {
-          console.log('Writing ArrayBuffer to terminal, length:', event.data.byteLength);
-          term.write(new Uint8Array(event.data));
-        } else {
-          console.log('Unknown data type:', typeof event.data);
-        }
-      });
-      
-      // Handle terminal input - send to WebSocket
-      term.onData((data) => {
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send(data);
-        }
-      });
-      
-      // Fit terminal and send size information
-      setTimeout(() => {
-        if (fit && term && ws && ws.readyState === WebSocket.OPEN) {
-          fit.fit();
-          
-          // Send terminal size to server for proper TUI rendering
-          const cols = term.cols;
-          const rows = term.rows;
-          
-          // Send multiple initialization messages
-          const messages = [
-            // Terminal size
-            JSON.stringify({
-              type: 'resize',
-              cols: cols,
-              rows: rows
-            }),
-            // Terminal initialization
-            JSON.stringify({
-              type: 'init',
-              term: 'xterm-256color',
-              cols: cols,
-              rows: rows
-            })
-          ];
-          
-          messages.forEach(msg => {
-            try {
-              ws.send(msg);
-              console.log(`Sent message: ${msg}`);
-            } catch (error) {
-              console.log('Could not send message:', error);
-            }
-          });
-          
-          term.focus();
-        }
-      }, 100);
-    });
-
-    ws.addEventListener("error", (error) => {
-      console.error('WebSocket ERROR event:', error);
-      console.error('WebSocket readyState on error:', ws?.readyState);
-      if (term) {
-        term.writeln('\r\n\x1b[31mWebSocket connection failed\x1b[0m');
-        term.writeln('Unable to connect to the remote terminal.');
-        term.writeln('Check console for details.');
-        term.write('$ ');
-      }
-    });
-
-    ws.addEventListener("close", () => {
-      console.log('WebSocket disconnected');
-      if (term) {
-        term.writeln('\r\n\x1b[33mConnection closed\x1b[0m');
-        term.writeln('Terminal session ended.');
-      }
-    });
-  } catch (error) {
-    console.error('Failed to create WebSocket:', error);
-    if (term) {
-      term.writeln('\x1b[31mFailed to establish WebSocket connection\x1b[0m');
+    if (response.ok) {
+      console.log('Terminal session destroyed:', sessionId.value);
     }
+  } catch (err) {
+    console.error('Failed to destroy session:', err);
+  } finally {
+    sessionId.value = '';
+    terminalUrl.value = '';
   }
 };
 
-const onResize = () => {
-  if (!fit || !term) return;
+// Event handlers
+const onIframeLoad = (): void => {
+  console.log('Terminal iframe loaded successfully');
+  isLoading.value = false;
+  error.value = '';
+};
+
+const onIframeError = (): void => {
+  console.error('Terminal iframe failed to load');
+  error.value = 'Failed to load terminal interface';
+  isLoading.value = false;
+};
+
+const refreshSession = async (): Promise<void> => {
+  stopKeepalive();
+  await destroySession();
+  await createSession();
+  startKeepalive();
+};
+
+// Keepalive functionality
+const startKeepalive = (): void => {
+  if (keepaliveInterval) {
+    clearInterval(keepaliveInterval);
+  }
   
-  setTimeout(() => {
-    if (fit && term) {
-      fit.fit();
-      
-      // Send new terminal size to WebSocket server after resize
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        const cols = term.cols;
-        const rows = term.rows;
-        
-        const resizeMsg = JSON.stringify({
-          type: 'resize',
-          cols: cols,
-          rows: rows
+  // Ping session every 2 minutes to keep it alive
+  keepaliveInterval = setInterval(async () => {
+    if (sessionId.value) {
+      try {
+        const response = await fetch(`${props.apiUrl}/sessions/${sessionId.value}`);
+        if (!response.ok) {
+          console.warn('Session keepalive failed, session may have expired');
+          stopKeepalive();
+        }
+      } catch (error) {
+        console.warn('Session keepalive error:', error);
+      }
+    }
+  }, 2 * 60 * 1000); // 2 minutes
+};
+
+const stopKeepalive = (): void => {
+  if (keepaliveInterval) {
+    clearInterval(keepaliveInterval);
+    keepaliveInterval = null;
+  }
+};
+
+// Handle page unload/refresh to cleanup sessions
+const handleBeforeUnload = (): void => {
+  if (sessionId.value) {
+    // Use sendBeacon for reliable cleanup during page unload
+    const data = JSON.stringify({ sessionId: sessionId.value });
+    
+    try {
+      // Try sendBeacon first (most reliable)
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(`${props.apiUrl}/sessions/${sessionId.value}`, data);
+      } else {
+        // Fallback to synchronous fetch
+        fetch(`${props.apiUrl}/sessions/${sessionId.value}`, {
+          method: 'DELETE',
+          keepalive: true,
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        }).catch(() => {
+          // Ignore errors during unload
         });
-        
-        try {
-          ws.send(resizeMsg);
-          console.log(`Terminal resized: ${cols}x${rows}`);
-        } catch (error) {
-          console.log('Could not send resize message:', error);
-        }
       }
+    } catch (error) {
+      // Ignore cleanup errors during unload
+      console.warn('Failed to cleanup session during page unload:', error);
     }
-  }, 100);
+  }
 };
 
-onMounted(() => {
-  initializeTerminal();
-  window.addEventListener("resize", onResize);
-});
-
-// Watch for theme changes and update terminal
-watch(theme, (newTheme) => {
-  if (term) {
-    term.options.theme = getTerminalTheme(newTheme);
-  }
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener("resize", onResize);
-  
-  // Clean up WebSocket
-  if (ws) {
-    try { 
-      ws.close(); 
-    } catch { 
-      // Ignore close errors
+// Handle visibility change to detect when user switches tabs/minimizes
+const handleVisibilityChange = (): void => {
+  if (document.hidden) {
+    // User switched away - session may become inactive
+    console.log('Page hidden, session may become inactive');
+  } else {
+    // User returned - reactivate session
+    if (sessionId.value && terminalUrl.value) {
+      console.log('Page visible again, session should be active');
+      // Optionally ping the session to keep it alive
     }
   }
+};
+
+// Lifecycle
+onMounted(async () => {
+  // Set up page unload handlers
+  window.addEventListener('beforeunload', handleBeforeUnload);
+  window.addEventListener('pagehide', handleBeforeUnload);
+  document.addEventListener('visibilitychange', handleVisibilityChange);
   
-  // Clean up terminal
-  if (term) {
-    term.dispose();
+  if (props.autoCreate) {
+    if (props.sessionId) {
+      await getOrCreateSession(props.sessionId);
+    } else {
+      await createSession();
+    }
   }
+});
+
+onBeforeUnmount(async () => {
+  // Stop keepalive
+  stopKeepalive();
   
-  // Reset references
-  term = null;
-  fit = null;
-  ws = null;
+  // Remove event listeners
+  window.removeEventListener('beforeunload', handleBeforeUnload);
+  window.removeEventListener('pagehide', handleBeforeUnload);
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
+  
+  if (sessionId.value) {
+    // Try to cleanup gracefully, but don't block unmount
+    destroySession().catch(console.error);
+  }
 });
 
 // Expose methods for external control
 defineExpose({
-  write: (data: string) => term?.write(data),
-  writeln: (data: string) => term?.writeln(data),
-  clear: () => term?.clear(),
-  focus: () => term?.focus(),
-  fit: () => {
-    fit?.fit();
-    // Also send resize message after manual fit
-    if (ws && ws.readyState === WebSocket.OPEN && term) {
-      const resizeMsg = JSON.stringify({
-        type: 'resize',
-        cols: term.cols,
-        rows: term.rows
-      });
-      try {
-        ws.send(resizeMsg);
-      } catch (error) {
-        console.log('Could not send resize message:', error);
-      }
-    }
-  },
-  reconnect: () => {
-    if (ws) {
-      ws.close();
-    }
-    connectWebSocket();
-  },
-  sendResize: () => {
-    if (ws && ws.readyState === WebSocket.OPEN && term) {
-      const resizeMsg = JSON.stringify({
-        type: 'resize',
-        cols: term.cols,
-        rows: term.rows
-      });
-      try {
-        ws.send(resizeMsg);
-        console.log(`Manual resize sent: ${term.cols}x${term.rows}`);
-      } catch (error) {
-        console.log('Could not send resize message:', error);
-      }
-    }
-  },
-  terminal: () => term
+  createSession,
+  destroySession,
+  refreshSession,
+  getSessionId: () => sessionId.value,
+  getTerminalUrl: () => terminalUrl.value,
+  isReady: () => !!terminalUrl.value && !isLoading.value && !error.value
 });
 </script>
 

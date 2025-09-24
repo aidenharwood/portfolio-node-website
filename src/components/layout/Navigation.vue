@@ -19,7 +19,7 @@
             <!-- Background highlight for active state -->
             <div 
               v-if="isCurrentRoute(link.route)"
-              class="absolute inset-0 bg-accent/5 rounded-xl"
+              class="absolute bg-accent/5 rounded-xl"
             ></div>
             
             <i :class="`pi ${link.icon} text-lg lg:text-base relative z-10`"></i>
@@ -28,7 +28,7 @@
             </span>
             
             <!-- Subtle hover effect -->
-            <div class="absolute inset-0 bg-accent/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+            <div class="absolute bg-accent/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
           </router-link>
         </div>
       </div>
