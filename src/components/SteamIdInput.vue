@@ -208,28 +208,6 @@ const hasSavedValue = computed(() => {
   return cookies.some(cookie => cookie.trim().startsWith('bl4_steam_id='))
 })
 
-const helpTooltip = `How to find your Gaming Platform ID:
-
-STEAM:
-1. Open Steam and go to your profile
-2. Right-click anywhere on your profile page  
-3. Select 'Copy Page URL'
-4. Your Steam ID is the 17-digit number in the URL
-
-You can enter:
-• Steam ID (76561198XXXXXXXXX)
-• Steam username
-• Full Steam profile URL
-• Custom Steam URL
-
-EPIC GAMES:
-1. Visit: https://www.epicgames.com/account/personal?productName=epicgames
-2. Look for "Account ID" 
-3. Copy the 32-character hexadecimal string
-4. Example: fb0d983582f74e7cb4602d9611466e11
-
-The system will automatically detect which platform you're using.`
-
 function handleInput() {
   // Clear validation state when typing, don't auto-validate
   // This allows users to type without constant validation
