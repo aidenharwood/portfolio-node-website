@@ -1,15 +1,82 @@
 import { ref, computed } from 'vue'
 
-export interface SteamIdValidation {
-  steamId: string
+export interface SteamProfile {
+  personaName?: string
+  profileUrl?: string
+  avatarUrl?: string
+  summary?: string
+}
+
+export type GamePlatform = 'steam' | 'epic'
+
+export interface GamePlatformValidation {
+  platformId: string
+  platform: GamePlatform
   isValid: boolean
   error: string
   displayValue: string
+  needsResolution?: boolean
+  profile?: SteamProfile | EpicProfile
+}
+
+export interface EpicProfile {
+  displayName: string
+  epicAccountId?: string
+  profileUrl?: string
+  // Epic doesn't have avatars in the same way Steam does
+}
+
+// Keep legacy interface for compatibility
+export interface SteamIdValidation extends GamePlatformValidation {
+  steamId: string
 }
 
 export function useSteamId() {
-  const steamIdInput = ref('')
-  const steamIdError = ref('')
+  const profileIdInput = ref('')
+  const profileError = ref('')
+  const isResolving = ref(false)
+  const gameProfile = ref<SteamProfile | EpicProfile | null>(null)
+
+
+
+
+
+  // Resolve Steam input to Steam ID and profile using our own API
+  async function resolveSteamInput(input: string): Promise<{ platformId: string; platform: GamePlatform; steamId?: string; profile?: SteamProfile } | null> {
+    try {
+      isResolving.value = true
+      
+      const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000'
+      const response = await fetch(`${API_BASE}/api/steam/resolve-vanity/${encodeURIComponent(input)}`)
+      
+      if (!response.ok) {
+        throw new Error(`Failed to resolve Steam input: ${response.status}`)
+      }
+      
+      const data = await response.json()
+      
+      if (data.success && data.steamId) {
+        // Update profile information
+        if (data.profile) {
+          gameProfile.value = data.profile
+        }
+        
+        return {
+          platformId: data.steamId,
+          platform: 'steam',
+          steamId: data.steamId,
+          profile: data.profile
+        }
+      } else {
+        return null
+      }
+    } catch (error) {
+      console.error('Error resolving Steam input:', error)
+      return null
+    } finally {
+      isResolving.value = false
+    }
+  }
 
   // Cookie utility functions
   function setCookie(name: string, value: string, days = 30) {
@@ -29,13 +96,65 @@ export function useSteamId() {
     return null
   }
 
-  // Extract Steam ID from various input formats
+  // Extract platform ID from various input formats
+  function extractGamePlatformId(input: string): GamePlatformValidation {
+    const trimmedInput = input.trim()
+    
+    if (!trimmedInput) {
+      return {
+        platformId: '',
+        platform: 'steam', // default
+        isValid: false,
+        error: 'Gaming platform ID or profile URL is required',
+        displayValue: trimmedInput
+      }
+    }
+
+    // Check for Epic Games Account ID patterns FIRST (to avoid false Steam matches)
+    // Epic Account IDs are 32-character hexadecimal strings (e.g., fb0d983582f74e7cb4602d9611466e11)
+    if (/^[a-f0-9]{32}$/.test(trimmedInput.toLowerCase())) {
+      return {
+        platformId: trimmedInput.toLowerCase(),
+        platform: 'epic',
+        isValid: true, // Epic Account ID is valid if it matches the pattern
+        error: '',
+        displayValue: trimmedInput.toLowerCase(),
+        needsResolution: false // No API lookup needed - just validate format
+      }
+    }
+
+    // Check for Steam patterns second
+    const steamResult = extractSteamId(trimmedInput)
+    if (steamResult.isValid || steamResult.needsResolution || steamResult.error.includes('Steam')) {
+      return {
+        platformId: steamResult.steamId,
+        platform: 'steam',
+        isValid: steamResult.isValid,
+        error: steamResult.error,
+        displayValue: steamResult.displayValue,
+        needsResolution: steamResult.needsResolution
+      }
+    }
+
+    // If no pattern matches, default to error
+    return {
+      platformId: '',
+      platform: 'steam', // default
+      isValid: false,
+      error: 'Please enter a valid Steam ID, Steam profile URL, or Epic Games Account ID (32-character hex string)',
+      displayValue: trimmedInput
+    }
+  }
+
+  // Extract Steam ID from various input formats (legacy function for Steam-specific logic)
   function extractSteamId(input: string): SteamIdValidation {
     const trimmedInput = input.trim()
     
     if (!trimmedInput) {
       return {
         steamId: '',
+        platformId: '',
+        platform: 'steam',
         isValid: false,
         error: 'Steam ID or profile URL is required',
         displayValue: trimmedInput
@@ -47,6 +166,8 @@ export function useSteamId() {
     if (steamIdPattern.test(trimmedInput)) {
       return {
         steamId: trimmedInput,
+        platformId: trimmedInput,
+        platform: 'steam',
         isValid: true,
         error: '',
         displayValue: trimmedInput
@@ -61,6 +182,8 @@ export function useSteamId() {
       if (steamIdPattern.test(extractedId)) {
         return {
           steamId: extractedId,
+          platformId: extractedId,
+          platform: 'steam',
           isValid: true,
           error: '',
           displayValue: extractedId
@@ -68,6 +191,8 @@ export function useSteamId() {
       } else {
         return {
           steamId: '',
+          platformId: '',
+          platform: 'steam',
           isValid: false,
           error: 'Invalid Steam ID format in profile URL',
           displayValue: trimmedInput
@@ -75,15 +200,18 @@ export function useSteamId() {
       }
     }
 
-    // Case 3: Custom URL format (steamcommunity.com/id/username)
+    // Case 3: Custom URL format (steamcommunity.com/id/username) - needs async resolution
     const customUrlPattern = /steamcommunity\.com\/id\/([^\/\s]+)/i
     const customMatch = trimmedInput.match(customUrlPattern)
     if (customMatch) {
       return {
-        steamId: '',
-        isValid: false,
-        error: 'Custom profile URLs are not supported. Please use your numeric Steam ID or profile URL with numeric ID.',
-        displayValue: trimmedInput
+        steamId: customMatch[1], // Store the vanity name temporarily
+        platformId: customMatch[1],
+        platform: 'steam',
+        isValid: false, // Will be validated async
+        error: '', // No error initially, will resolve async
+        displayValue: trimmedInput,
+        needsResolution: true // Flag to indicate this needs async resolution
       }
     }
 
@@ -91,15 +219,36 @@ export function useSteamId() {
     if (trimmedInput.includes('steamcommunity.com')) {
       return {
         steamId: '',
+        platformId: '',
+        platform: 'steam',
         isValid: false,
         error: 'Please provide the complete Steam profile URL',
         displayValue: trimmedInput
       }
     }
 
+    // Case 5: Direct vanity name (username without URL) - needs async resolution
+    // Only if it's not a Steam ID and doesn't contain special characters
+    if (!/^7656119\d{10}$/.test(trimmedInput) && 
+        /^[a-zA-Z0-9_-]+$/.test(trimmedInput) && 
+        trimmedInput.length >= 3 && 
+        trimmedInput.length <= 32) {
+      return {
+        steamId: trimmedInput, // Store the vanity name temporarily
+        platformId: trimmedInput,
+        platform: 'steam',
+        isValid: false, // Will be validated async
+        error: '', // No error initially, will resolve async
+        displayValue: trimmedInput,
+        needsResolution: true // Flag to indicate this needs async resolution
+      }
+    }
+
     // Default: Invalid format
     return {
       steamId: '',
+      platformId: '',
+      platform: 'steam',
       isValid: false,
       error: 'Please enter a valid Steam ID (17 digits starting with 7656119) or Steam profile URL',
       displayValue: trimmedInput
@@ -107,51 +256,117 @@ export function useSteamId() {
   }
 
   // Computed properties
-  const steamIdValidation = computed(() => extractSteamId(steamIdInput.value))
+  const platformValidation = computed(() => extractGamePlatformId(profileIdInput.value))
+  const steamIdValidation = computed(() => extractSteamId(profileIdInput.value)) // Keep for compatibility
   const steamId = computed(() => steamIdValidation.value.steamId)
-  const steamIdValid = computed(() => steamIdValidation.value.isValid)
+  const profileIdValid = computed(() => platformValidation.value.isValid)
+  const platformType = computed(() => platformValidation.value.platform)
 
-  // Validate and update error state
-  function validateSteamId() {
-    const validation = steamIdValidation.value
-    steamIdError.value = validation.error
-    
-    // Update display value if it changed (e.g., extracted from URL)
-    if (validation.displayValue !== steamIdInput.value && validation.isValid) {
-      steamIdInput.value = validation.displayValue
+  // Validate and update error state (now async to handle resolution)
+  async function validateProfileId() {
+    // If clicking "Change" or clearing validation, reset profile and error state
+    if (!profileIdInput.value || profileIdInput.value.trim() === '') {
+      gameProfile.value = null
+      profileError.value = ''
+      return
     }
     
-    // Save valid Steam ID to cookie
-    if (validation.isValid && validation.steamId) {
-      setCookie('bl4_steam_id', validation.steamId)
+    // Handle platform validation differently
+    const platform = platformType.value
+    const validation = platformValidation.value
+    
+    if (platform === 'epic') {
+      // For Epic Games, just validate the format - no API lookup
+      if (validation.isValid) {
+        profileError.value = ''
+        // Create a basic Epic profile for display
+        gameProfile.value = {
+          displayName: `Epic User ${validation.platformId.substring(0, 8)}...`,
+          epicAccountId: validation.platformId
+        }
+        // Save Epic Account ID to cookie for persistence
+        setCookie('bl4_steam_id', validation.platformId)
+      } else {
+        profileError.value = 'Invalid Epic Games Account ID format. Must be a 32-character hexadecimal string.'
+        gameProfile.value = null
+      }
+    } else {
+      // For Steam, resolve via API
+      profileError.value = 'Resolving Steam profile...'
+      
+      const result = await resolveSteamInput(profileIdInput.value)
+      
+      if (result) {
+        // Update the input with the resolved Steam ID
+        profileIdInput.value = result.platformId
+        profileError.value = ''
+        // For Steam, use Steam ID cookie for compatibility
+        if (result.platform === 'steam' && 'steamId' in result && result.steamId) {
+          setCookie('bl4_steam_id', result.steamId)
+        }
+      } else {
+        profileError.value = 'Could not resolve Steam profile. Please check your Steam ID, username, or profile URL.'
+        gameProfile.value = null
+      }
     }
   }
 
-  function clearSavedSteamId() {
-    setCookie('bl4_steam_id', '', -1) // Delete cookie
-    steamIdInput.value = ''
-    steamIdError.value = ''
+  function clearSavedProfileId() {
+    setCookie('bl4_steam_id', '', -1) // Delete cookie (keep same name for compatibility)
+    profileIdInput.value = ''
+    profileError.value = ''
+    gameProfile.value = null
   }
 
-  // Initialize from cookie
-  function initializeSteamId() {
-    const savedSteamId = getCookie('bl4_steam_id')
-    if (savedSteamId) {
-      steamIdInput.value = savedSteamId
-      validateSteamId()
+  function resetValidation() {
+    profileError.value = ''
+    gameProfile.value = null
+  }
+
+  // Initialize from cookie - detect platform and handle appropriately
+  function initializeProfileId() {
+    const savedId = getCookie('bl4_steam_id') // Keep checking same cookie for compatibility
+    if (savedId) {
+      profileIdInput.value = savedId
+      const platformValidation = extractGamePlatformId(savedId)
+      
+      if (platformValidation.platform === 'epic' && platformValidation.isValid) {
+        // For Epic, just create the profile without API call
+        profileError.value = '' // Clear any previous errors
+        gameProfile.value = {
+          displayName: `Epic User ${savedId.substring(0, 8)}...`,
+          epicAccountId: savedId
+        }
+      } else {
+        // For Steam, validate via API
+        validateProfileId()
+      }
     }
   }
 
   return {
-    steamIdInput,
-    steamIdError,
+    // New generic names
+    profileIdInput,
+    profileError,
+    profileIdValid,
+    gameProfile,
+    validateProfileId,
+    clearSavedProfileId,
+    initializeProfileId,
+    
+    // Legacy compatibility - map new variables to old names
+    steamIdInput: profileIdInput,
+    steamIdError: profileError,
     steamId,
-    steamIdValid,
-    isValidSteamId: steamIdValid, // Alias for compatibility
+    steamIdValid: profileIdValid,
+    isValidSteamId: profileIdValid, // Alias for compatibility
     steamIdValidation,
-    validateSteamId,
-    clearSavedSteamId,
-    initializeSteamId,
+    steamProfile: gameProfile,
+    isResolving,
+    validateSteamId: validateProfileId,
+    resetValidation,
+    clearSavedSteamId: clearSavedProfileId,
+    initializeSteamId: initializeProfileId,
     getCookie,
     setCookie
   }

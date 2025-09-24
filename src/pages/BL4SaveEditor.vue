@@ -1,12 +1,9 @@
 <template>
   <div class="min-h-screen bg-background">
     <!-- Header -->
-    <div class="border-b bg-card/30 backdrop-blur-sm">
+    <div class="backdrop-blur-sm">
       <div class="container mx-auto px-6 py-8">
         <div class="flex items-center gap-3 mb-4">
-          <div class="w-10 h-10 bg-accent/20 rounded-lg flex items-center justify-center">
-            <i class="pi pi-shield text-accent text-lg"></i>
-          </div>
           <h1 class="text-3xl font-bold">Borderlands 4 Save Editor</h1>
         </div>
         <p class="text-muted-foreground text-lg mb-4">
@@ -28,18 +25,17 @@
     </div>
 
     <div class="container mx-auto px-6 py-8 space-y-8">
-      <!-- Steam ID Input Section -->
+      <!-- Gaming Platform Input Section -->
       <section v-if="!sessionId" class="bg-card rounded-lg border p-6">
         <div class="flex items-center gap-3 mb-6">
-          <div class="w-8 h-8 bg-blue-500/20 rounded-md flex items-center justify-center">
-            <i class="pi pi-user text-blue-500"></i>
-          </div>
-          <h2 class="text-xl font-semibold">Steam Configuration</h2>
         </div>
         <SteamIdInput 
           v-model="steamIdInput" 
           :error="steamIdError"
+          :is-resolving="isResolving"
+          :steam-profile="steamProfile"
           @validate="validateSteamId"
+          @reset="resetValidation"
         />
       </section>
 
@@ -132,7 +128,10 @@ const {
   steamId,
   steamIdValid,
   validateSteamId,
-  initializeSteamId
+  resetValidation,
+  initializeSteamId,
+  isResolving,
+  steamProfile
 } = useSteamId()
 
 // Save files composable
