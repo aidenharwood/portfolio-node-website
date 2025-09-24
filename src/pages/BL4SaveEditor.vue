@@ -117,9 +117,9 @@
 import { onMounted } from 'vue'
 import { useSteamId } from '../composables/useSteamId'
 import { useSaveFiles } from '../composables/useSaveFiles'
-import SteamIdInput from '../components/SteamIdInput.vue'
-import SaveFolderUpload from '../components/SaveFolderUpload.vue'
-import SaveFileEditor from '../components/SaveFileEditor.vue'
+import SteamIdInput from '@/components/bl4/SteamIdInput.vue'
+import SaveFolderUpload from '@/components/bl4/SaveFolderUpload.vue'
+import SaveFileEditor from '@/components/bl4/SaveFileEditor.vue'
 
 // Steam ID composable
 const {

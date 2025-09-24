@@ -53,7 +53,7 @@ import { onMounted, onUpdated, nextTick, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { type BlogPostMeta, fetchPost } from '@/lib/blog'
 import { formatDate, getReadTime } from '@/lib/utils'
-import MarkdownRenderer from '@/components/MarkdownRenderer.vue'
+import MarkdownRenderer from '@/components/common/MarkdownRenderer.vue'
 import hljs from 'highlight.js'
 
 hljs.registerLanguage('bicep', highlightBicep)

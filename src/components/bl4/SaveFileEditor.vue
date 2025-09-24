@@ -97,7 +97,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { type SaveFile } from '../composables/useSaveFiles'
+import { type SaveFile } from '@/composables/useSaveFiles'
 
 interface Props {
   saveFiles: SaveFile[]

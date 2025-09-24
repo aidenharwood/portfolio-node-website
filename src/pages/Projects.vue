@@ -54,7 +54,7 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import { type ProjectMeta, getAllProjects } from '@/lib/projects'
-import ProjectCard from '@/components/ProjectCard.vue'
+import ProjectCard from '@/components/cards/ProjectCard.vue'
 
 const projects = ref<ProjectMeta[]>([])
 const loading = ref(true)

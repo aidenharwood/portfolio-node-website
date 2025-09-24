@@ -20,6 +20,10 @@ export default defineConfig({
         target: 'http://localhost:4000',
         changeOrigin: true,
       },
+      '/k9s': {
+        target: 'http://localhost:4000',
+        changeOrigin: true,
+      },
       '/images': {
         target: 'http://localhost:4000',
         changeOrigin: true,

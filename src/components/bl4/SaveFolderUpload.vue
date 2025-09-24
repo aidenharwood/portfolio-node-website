@@ -1,51 +1,74 @@
 <template>
-  <div
-    @dragover="handleDragOver"
-    @dragenter="handleDragEnter"
-    @dragleave="handleDragLeave"
-    @drop="handleFolderDrop"
-    class="border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300"
-    :class="{
-      'border-accent/40 bg-accent/10 scale-105': isDragging,
-      'border-muted': !isDragging && !steamIdValid,
-      'border-accent': !isDragging && steamIdValid
-    }"
-  >
-    <input
-      ref="folderInput"
-      type="file"
-      webkitdirectory
-      @change="handleFolderSelect"
-      class="hidden"
-    />
-    
-    <div v-if="!uploading">
-      <i class="pi pi-folder text-4xl text-muted-foreground mb-4 transition-all duration-300" :class="{ 'scale-110 text-accent': isDragging }"></i>
-      <h3 class="text-lg font-semibold text-foreground mb-2">
-        Drop your save folder here
-        <button
-          class="ml-2 text-muted-foreground hover:text-foreground transition-colors"
-          title="Save folder locations:&#10;&#10;Windows:&#10;%USERPROFILE%/Documents/My Games/Borderlands 4/Saved/SaveGames/[YourSteamID]/&#10;&#10;Steam Deck/Linux:&#10;~/.steam/steam/steamapps/compatdata/[AppID]/pfx/drive_c/users/steamuser/Documents/My Games/Borderlands 4/Saved/SaveGames/[YourSteamID]/&#10;&#10;The folder should contain profile.sav and numbered save files like 1.sav, 2.sav, etc."
-        >
-          <i class="pi pi-question-circle text-sm"></i>
-        </button>
-      </h3>
-      <p class="text-muted-foreground mb-4">
-        or <button @click="folderInput?.click()" class="text-accent underline hover:text-accent/80 transition-colors duration-200">browse folders</button>
-      </p>
-      <div class="text-sm text-muted-foreground space-y-1">
-        <p>Select your entire Borderlands 4 save folder containing:</p>
-        <ul class="list-disc list-inside space-y-1 mt-2">
-          <li>profile.sav (player profile)</li>
-          <li>1.sav, 2.sav, etc. (character saves)</li>
-        </ul>
-        <p class="mt-2">Maximum folder size: 50MB</p>
+  <div class="save-folder-upload">
+    <div 
+      class="upload-area"
+      :class="{ 
+        'dragover': isDragOver,
+        'uploading': uploading
+      }"
+      @drop.prevent="handleDrop"
+      @dragover.prevent="isDragOver = true"
+      @dragleave="isDragOver = false"
+    >
+      <div class="upload-content" v-if="!uploading">
+        <i class="pi pi-cloud-upload upload-icon" 
+           :class="{ 'drag-active': isDragOver }"></i>
+        <h3>Drop your save folder here</h3>
+        <p>Drop the entire save folder or select individual .sav files</p>
+        
+        <div class="upload-info">
+          <div class="info-item">
+            <strong>Expected files:</strong>
+            <ul>
+              <li>profile.sav (player profile)</li>
+              <li>1.sav, 2.sav, etc. (character saves)</li>
+            </ul>
+          </div>
+          <div class="info-item">
+            <strong>Folder locations:</strong>
+            <ul>
+              <li><strong>Windows:</strong> Documents/My Games/Borderlands 4/Saved/SaveGames/[YourSteamID]/profiles/client/</li>
+              <li><strong>Steam Deck/Linux:</strong> ~/.steam/steam/steamapps/compatdata/[AppID]/pfx/drive_c/users/steamuser/Documents/My Games/Borderlands 4/Saved/SaveGames/[YourSteamID]/profiles/client/</li>
+            </ul>
+          </div>
+          <div class="info-item">
+            <strong>Maximum folder size:</strong> 50MB
+          </div>
+        </div>
+        
+        <div class="upload-actions">
+          <input
+            ref="fileInput"
+            type="file"
+            multiple
+            accept=".sav"
+            @change="handleFileSelect"
+            style="display: none"
+          >
+          <input
+            ref="folderInput"
+            type="file"
+            webkitdirectory
+            @change="handleFolderSelect"
+            style="display: none"
+          >
+          <button @click="folderInput?.click()" class="btn btn-primary">
+            <i class="pi pi-folder-open"></i>
+            Browse Folder
+          </button>
+          <button @click="fileInput?.click()" class="btn btn-secondary">
+            <i class="pi pi-file"></i>
+            Browse Files
+          </button>
+        </div>
       </div>
-    </div>
-    
-    <div v-else class="flex items-center justify-center">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mr-3"></div>
-      <span class="text-foreground">Processing save folder...</span>
+      
+      <div v-else class="upload-progress">
+        <div class="spinner">
+          <i class="pi pi-spin pi-spinner"></i>
+        </div>
+        <span>Processing save files...</span>
+      </div>
     </div>
   </div>
 </template>
@@ -54,7 +77,6 @@
 import { ref } from 'vue'
 
 interface Props {
-  steamIdValid: boolean
   uploading: boolean
 }
 
@@ -62,95 +84,253 @@ interface Emits {
   (e: 'upload', files: FileList): void
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-const isDragging = ref(false)
+const isDragOver = ref(false)
+const fileInput = ref<HTMLInputElement>()
 const folderInput = ref<HTMLInputElement>()
 
-function handleDragOver(e: DragEvent) {
-  e.preventDefault()
-  if (!props.steamIdValid) return
-  isDragging.value = true
-}
-
-function handleDragEnter(e: DragEvent) {
-  e.preventDefault()
-  if (!props.steamIdValid) return
-  isDragging.value = true
-}
-
-function handleDragLeave(e: DragEvent) {
-  e.preventDefault()
-  // Only set to false if we're leaving the entire drop zone
-  const currentTarget = e.currentTarget as HTMLElement
-  const relatedTarget = e.relatedTarget as HTMLElement
-  if (!currentTarget || !relatedTarget || !currentTarget.contains(relatedTarget)) {
-    isDragging.value = false
-  }
-}
-
-function handleFolderDrop(e: DragEvent) {
-  e.preventDefault()
-  isDragging.value = false
+function handleDrop(event: DragEvent) {
+  isDragOver.value = false
   
-  if (!props.steamIdValid) {
-    return
-  }
-
-  const items = e.dataTransfer?.items
+  const items = event.dataTransfer?.items
   if (items) {
+    // Handle folder drop
     for (let i = 0; i < items.length; i++) {
       const item = items[i]
-      if (item.webkitGetAsEntry) {
+      if (item.kind === 'file') {
         const entry = item.webkitGetAsEntry()
-        if (entry && entry.isDirectory) {
-          // Extract files from the directory
-          const files: File[] = []
-          processDirectory(entry as FileSystemDirectoryEntry, files).then(() => {
-            if (files.length > 0) {
-              const fileList = createFileList(files)
-              emit('upload', fileList)
-            }
-          })
+        if (entry?.isDirectory) {
+          handleFolderEntry(entry as FileSystemDirectoryEntry)
           return
         }
       }
     }
   }
-}
-
-function handleFolderSelect(event: Event) {
-  const input = event.target as HTMLInputElement
-  if (input.files && input.files.length > 0) {
-    emit('upload', input.files)
+  
+  // Handle file drop if no folder found
+  const files = event.dataTransfer?.files
+  if (files && files.length > 0) {
+    emit('upload', files)
   }
 }
 
-async function processDirectory(directory: FileSystemDirectoryEntry, files: File[]): Promise<void> {
-  return new Promise((resolve) => {
-    const reader = directory.createReader()
-    reader.readEntries(async (entries) => {
-      for (const entry of entries) {
-        if (entry.isFile && entry.name.toLowerCase().endsWith('.sav')) {
-          const file = await getFileFromEntry(entry as FileSystemFileEntry)
-          if (file) files.push(file)
-        }
-      }
-      resolve()
+function handleFileSelect(event: Event) {
+  const target = event.target as HTMLInputElement
+  if (target.files && target.files.length > 0) {
+    emit('upload', target.files)
+  }
+}
+
+function handleFolderSelect(event: Event) {
+  const target = event.target as HTMLInputElement
+  if (target.files && target.files.length > 0) {
+    emit('upload', target.files)
+  }
+}
+
+async function handleFolderEntry(entry: FileSystemDirectoryEntry) {
+  const readDirectory = (dirEntry: FileSystemDirectoryEntry): Promise<File[]> => {
+    return new Promise((resolve) => {
+      const dirReader = dirEntry.createReader()
+      dirReader.readEntries(async (entries) => {
+        const filePromises = entries.map(entry => {
+          if (entry.isFile && entry.name.toLowerCase().endsWith('.sav')) {
+            return new Promise<File>((resolve, reject) => {
+              (entry as FileSystemFileEntry).file(resolve, reject)
+            })
+          }
+          return null
+        }).filter(Boolean) as Promise<File>[]
+        
+        const files = await Promise.all(filePromises)
+        resolve(files)
+      })
     })
-  })
-}
-
-function getFileFromEntry(entry: FileSystemFileEntry): Promise<File | null> {
-  return new Promise((resolve) => {
-    entry.file(resolve, () => resolve(null))
-  })
-}
-
-function createFileList(files: File[]): FileList {
-  const dt = new DataTransfer()
-  files.forEach(file => dt.items.add(file))
-  return dt.files
+  }
+  
+  const folderFiles = await readDirectory(entry)
+  if (folderFiles.length > 0) {
+    // Convert File[] to FileList-like object
+    const dt = new DataTransfer()
+    folderFiles.forEach(file => dt.items.add(file))
+    emit('upload', dt.files)
+  }
 }
 </script>
+
+<style scoped>
+.save-folder-upload {
+  width: 100%;
+}
+
+.upload-area {
+  border: 2px dashed rgba(var(--accent-color), 0.4);
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  background: rgba(var(--accent-color), 0.02);
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-area.dragover {
+  border-color: rgb(var(--accent-color));
+  background: rgba(var(--accent-color), 0.08);
+  transform: scale(1.02);
+  box-shadow: 0 0 20px rgba(var(--accent-color), 0.2);
+}
+
+.upload-area.uploading {
+  border-color: rgba(var(--accent-color), 0.6);
+  background: rgba(var(--accent-color), 0.1);
+}
+
+.upload-content {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.upload-icon {
+  font-size: 4rem;
+  color: var(--text-color-secondary);
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.upload-icon.drag-active {
+  color: rgb(var(--accent-color));
+  transform: scale(1.1);
+}
+
+.upload-content h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 0.5rem;
+}
+
+.upload-content > p {
+  color: var(--text-color-secondary);
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+}
+
+.upload-info {
+  text-align: left;
+  margin: 1.5rem 0;
+  padding: 1.5rem;
+  background: rgba(var(--accent-color), 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(var(--accent-color), 0.2);
+}
+
+.info-item {
+  margin-bottom: 1rem;
+}
+
+.info-item:last-child {
+  margin-bottom: 0;
+}
+
+.info-item strong {
+  color: rgb(var(--accent-color));
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.info-item ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: var(--text-color-secondary);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.info-item li {
+  margin-bottom: 0.25rem;
+}
+
+.upload-actions {
+  margin-top: 1.5rem;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, rgb(var(--accent-color)), rgba(var(--accent-color), 0.8));
+  color: white;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(var(--accent-color), 0.3);
+}
+
+.btn-secondary {
+  background: rgba(var(--surface-100), 0.1);
+  color: var(--text-color-secondary);
+  border: 1px solid rgba(var(--accent-color), 0.2);
+}
+
+.btn-secondary:hover {
+  background: rgba(var(--accent-color), 0.1);
+  color: rgb(var(--accent-color));
+  border-color: rgba(var(--accent-color), 0.3);
+  transform: translateY(-1px);
+}
+
+.upload-progress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: rgb(var(--accent-color));
+  font-size: 1.1rem;
+}
+
+.spinner i {
+  font-size: 2rem;
+}
+
+@media (max-width: 768px) {
+  .upload-area {
+    padding: 1.5rem 1rem;
+    min-height: 250px;
+  }
+  
+  .upload-icon {
+    font-size: 3rem;
+  }
+  
+  .upload-content h3 {
+    font-size: 1.2rem;
+  }
+  
+  .info-item ul {
+    font-size: 0.8rem;
+  }
+  
+  .btn {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+}
+</style>

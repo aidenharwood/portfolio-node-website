@@ -97,7 +97,7 @@ import { onMounted, onUpdated, nextTick, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { type ProjectMeta, fetchProject } from '@/lib/projects'
 import { formatDate } from '@/lib/utils'
-import MarkdownRenderer from '@/components/MarkdownRenderer.vue'
+import MarkdownRenderer from '@/components/common/MarkdownRenderer.vue'
 import hljs from 'highlight.js'
 import highlightBicep from '@/lib/highlight.bicep'
 
