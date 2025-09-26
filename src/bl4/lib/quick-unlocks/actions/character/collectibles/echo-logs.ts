@@ -1,5 +1,5 @@
 import { deepClone } from '../../../../utils'
-import { REGIONS, type Region } from '../../../constants'
+import { REGIONS } from '../../../constants'
 import type { QuickUnlockAction } from '../../../types'
 
 const REGION_SLUG_MAP : Record<string, string> = {
@@ -8,12 +8,6 @@ const REGION_SLUG_MAP : Record<string, string> = {
   'shatteredlands': 'sha',
   'elpis': 'elp',
   'city': 'city',
-}
-
-const KIND_MAP : Record<string, string> = {
-  'general': 'gen',
-  'arjay': 'arj',
-  'vaulthunter': 'vh'
 }
 
 export const collectEchoLogsAction: QuickUnlockAction = {

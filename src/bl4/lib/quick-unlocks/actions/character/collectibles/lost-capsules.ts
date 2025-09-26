@@ -1,5 +1,5 @@
 import { deepClone } from '../../../../utils'
-import { REGIONS, type Region } from '../../../constants'
+import { REGIONS } from '../../../constants'
 import type { QuickUnlockAction } from '../../../types'
 
 export const collectLostCapsulesAction: QuickUnlockAction = {
