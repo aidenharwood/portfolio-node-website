@@ -113,6 +113,7 @@ import {
   contractSaveDataFromItemContainers
 } from '../../lib/parsers'
 import { SectionRegistry, type SlotBasedSection } from '../../lib/sections'
+import { runQuickUnlock } from '../../lib/quick-unlocks'
 
 export interface EditorFieldConfig {
   yamlPath: string
@@ -335,6 +336,11 @@ const handleFieldUpdate = (yamlPath: string, value: any) => {
 }
 
 const handleSectionAction = (actionId: string, sectionId: string) => {
+  if (sectionId === 'quickUnlocks') {
+    handleQuickUnlockAction(actionId)
+    return
+  }
+
   const containerMatch = sectionId.match(/^(.+)_container$/)
   if (containerMatch) {
     const [, containerId] = containerMatch
@@ -374,6 +380,22 @@ const handleSectionAction = (actionId: string, sectionId: string) => {
       console.warn(`Unknown add item action: ${actionId}`)
     }
   }
+}
+
+const handleQuickUnlockAction = (actionId: string) => {
+  const result = runQuickUnlock(actionId, yamlData.value)
+
+  if (!result) {
+    console.warn(`Unknown quick unlock action: ${actionId}`)
+    return
+  }
+
+  if (Array.isArray(result.warnings) && result.warnings.length) {
+    console.warn(`Quick unlock action "${actionId}" reported warnings:`, result.warnings)
+  }
+
+  const contractedData = contractSaveDataFromItemContainers(result.data)
+  emit('update:jsonData', contractedData)
 }
 
 const handleAddItemToContainer = (containerId: string) => {

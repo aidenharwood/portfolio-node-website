@@ -66,6 +66,12 @@ export function getYAMLBasedConfig(saveData: BL4CharacterSave | BL4ProfileSave) 
         title: 'Lost Items',
         icon: '🔍',
         sectionId: 'lostloot'
+      },
+      {
+        id: 'quick-unlocks',
+        title: 'Quick Unlocks',
+        icon: 'pi pi-bolt',
+        sectionId: 'quickUnlocks'
       }
     ]
     
