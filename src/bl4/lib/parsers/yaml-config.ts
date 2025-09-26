@@ -45,26 +45,26 @@ export function getYAMLBasedConfig(saveData: BL4CharacterSave | BL4ProfileSave) 
       {
         id: 'character-info',
         title: 'Character Info',
-        icon: '👤',
+        icon: 'pi pi-user',
         sectionId: 'character',
         validation: (data: unknown) => isCharacterSave(data)
       },
       {
         id: 'backpack',
         title: 'Backpack',
-        icon: '🎒', 
+        icon: 'pi pi-bag', 
         sectionId: 'backpack'
       },
       {
         id: 'equipped',
         title: 'Equipped',
-        icon: '⚔️',
+        icon: 'pi pi-shield',
         sectionId: 'equipped'
       },
       {
         id: 'lost-items',
         title: 'Lost Items',
-        icon: '🔍',
+        icon: 'pi pi-trash',
         sectionId: 'lostloot'
       }
     ]

@@ -1,18 +1,46 @@
 <template>
-  <div class="flex flex-col gap-6">
+  <div class="flex flex-col ">
     <div
       v-if="availableTabs.length > 1"
-    >
-      <div class="flex flex-wrap gap-2">
+    >  
+      <!-- Quick Unlocks Section: Grouped Buttons -->
+      <div class="space-y-4 mb-4">
+        <div class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Quick Unlocks
+        </div>
+        <div class="flex flex-wrap gap-6">
+          <div v-for="group in quickUnlockGroups" :key="group.id" class="min-w-[180px]">
+            <div class="flex items-center gap-2 mb-2">
+              <i v-if="group.icon" :class="group.icon" class="text-base text-accent" />
+              <span class="font-semibold">{{ group.label }}</span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button
+                v-for="action in group.actions"
+                :key="action.id"
+                type="button"
+                class="inline-flex items-center gap-2 rounded-md border border-border/60 bg-muted/60 px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-muted hover:text-foreground transition"
+                @click="handleQuickUnlockAction(action.id)"
+              >
+                <i v-if="action.icon" :class="action.icon" class="text-sm" />
+                <span>{{ action.label }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- End Quick Unlocks Section -->
+
+      <div class="flex flex-wrap gap-2 mx-8">
         <button
           v-for="tab in availableTabs"
           :key="tab.id"
           type="button"
-          class="relative inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold tracking-wide transition focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+          class="relative inline-flex items-center gap-2 rounded-t-lg border-t border-x px-4 py-2 text-sm font-semibold"
           :class="[
             activeTab === tab.id
-              ? ' text-muted-foreground shadow-sm  decoration-2 decoration-accent'
-              : 'border-border/60 bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground'
+              ? 'text-muted-foreground shadow-sm'
+              : 'border-none bg-none text-muted-foreground hover:bg-muted hover:text-foreground'
           ]"
           @click="activeTab = tab.id"
         >
@@ -30,7 +58,7 @@
     >
       <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-3">
         <i class="pi pi-exclamation-triangle text-base"></i>
-        <div class="space-y-1">
+        <div class="space-y-41">
           <p class="font-semibold">YAML Parse Error</p>
           <p>{{ parseError }}</p>
           <p class="text-xs italic text-destructive/80">
@@ -40,7 +68,7 @@
       </div>
     </div>
 
-    <div v-else class="flex flex-col gap-6">
+    <div v-else class="flex flex-col gap-6 background-transparent">
       <div v-if="!fileName || currentTabSections.length === 0" class="flex justify-center">
         <div class="inline-flex items-center gap-3 rounded-xl border border-border/60 bg-background/80 px-4 py-3 text-sm text-muted-foreground">
           <i class="pi pi-info-circle text-base"></i>
@@ -49,7 +77,7 @@
         </div>
       </div>
 
-      <div v-else>
+      <div v-else class="border-b border-b/60 rounded-xl border bg-none p-4">
         <div v-if="currentTabSections.length === 1" class="space-y-4">
           <EditorSection
             :key="currentTabSections[0].id"
@@ -65,8 +93,7 @@
             @sectionAction="handleSectionAction"
           />
         </div>
-
-        <div v-else class="space-y-5">
+        <div v-else class="space-y-4 p-4 section-stack maximized-section">
           <EditorSection
             v-for="section in currentTabSections"
             :key="section.id"
@@ -113,6 +140,7 @@ import {
   contractSaveDataFromItemContainers
 } from '../../lib/parsers'
 import { SectionRegistry, type SlotBasedSection } from '../../lib/sections'
+import { runQuickUnlock, getQuickUnlockGroups } from '../../lib/quick-unlocks'
 
 export interface EditorFieldConfig {
   yamlPath: string
@@ -164,6 +192,7 @@ export interface EditorSectionConfig {
 interface Props {
   jsonData: any
   fileName: string
+  saveType: 'character' | 'profile'
 }
 
 interface Emits {
@@ -335,6 +364,11 @@ const handleFieldUpdate = (yamlPath: string, value: any) => {
 }
 
 const handleSectionAction = (actionId: string, sectionId: string) => {
+  if (sectionId === 'quickUnlocks') {
+    handleQuickUnlockAction(actionId)
+    return
+  }
+
   const containerMatch = sectionId.match(/^(.+)_container$/)
   if (containerMatch) {
     const [, containerId] = containerMatch
@@ -374,6 +408,28 @@ const handleSectionAction = (actionId: string, sectionId: string) => {
       console.warn(`Unknown add item action: ${actionId}`)
     }
   }
+}
+
+// --- Quick Unlock Groups UI ---
+const saveType = computed(() => props.saveType)
+
+const quickUnlockGroups = computed(() => getQuickUnlockGroups(saveType.value))
+
+const handleQuickUnlockAction = (actionId: string) => {
+  const result = runQuickUnlock(actionId, yamlData.value)
+
+  if (!result) {
+    console.warn(`Unknown quick unlock action: ${actionId}`)
+    return
+  }
+
+  if (Array.isArray(result.warnings) && result.warnings.length) {
+    console.warn(`Quick unlock action "${actionId}" reported warnings:`, result.warnings)
+  }
+
+  const contractedData = contractSaveDataFromItemContainers(result.data)
+
+  emit('update:jsonData', contractedData)
 }
 
 const handleAddItemToContainer = (containerId: string) => {

@@ -225,9 +225,7 @@ function getItemDisplayName(serial: string, allItems: any[]): string {
     return item.getName()
   }
   
-  // Fallback to truncated serial
-  const shortSerial = serial.substring(0, 20) + (serial.length > 20 ? '...' : '')
-  return `Item: ${shortSerial}`
+  return `Item: ${serial}`
 }
 
 /**
