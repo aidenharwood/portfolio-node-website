@@ -91,7 +91,7 @@
           </div>
 
           <div v-else class=" p-1">
-            <visual-editor class="min-h-[420px]" :jsonData="file.jsonData" :fileName="file.name"
+            <visual-editor class="min-h-[420px]" :jsonData="file.jsonData" :fileName="file.name" :saveType="getSaveType(file.name)"
               @update:jsonData="handleVisualJsonChange(file.name, $event)" />
           </div>
         </div>
@@ -170,5 +170,11 @@ function getFileDisplayName(fileName: string): string {
 
 function getClass(characterInfo: { className?: string }): string {
   return characterInfo.className ? resolveClassName(characterInfo.className) : ''
+}
+
+// Determine saveType in SaveFileEditor and pass to VisualEditor
+function getSaveType(fileName: string): 'character' | 'profile' {
+  if (fileName === 'profile.sav') return 'profile'
+  return 'character'
 }
 </script>

@@ -131,7 +131,7 @@ export abstract class BaseInventorySection implements SlotBasedSection {
         sections.push({
           id: `${this.id}_slot_${index}`,
           title: `Item ${index + 1}`,
-          description: `${item.serial.substring(0, 20)}${item.serial.length > 20 ? '...' : ''}`,
+          description: item.serial,
           icon: 'pi pi-box',
           fields: this.itemSchema.map(schemaField => ({
             path: `_slot_${this.id}_${index}.${schemaField.path}`,

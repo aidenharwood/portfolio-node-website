@@ -214,10 +214,6 @@ export function getBL4Config(saveData: BL4CharacterSave | BL4ProfileSave, tabId?
         sections.push(editorConfig)
       }
     })
-    // Include quick unlocks section for character saves when requesting all sections
-    if (configCache.type === 'character') {
-      sections.push(createQuickUnlocksSection())
-    }
   } else {
     // Find the tab configuration and get its associated section
     const tab = configCache.tabs.find(t => t.id === tabId)
@@ -233,31 +229,11 @@ export function getBL4Config(saveData: BL4CharacterSave | BL4ProfileSave, tabId?
           // For regular sections: add single section
           sections.push(editorConfig)
         }
-      } else if (tab.id === 'quick-unlocks') {
-        sections.push(createQuickUnlocksSection())
       }
     }
   }
 
   return sections
-}
-
-function createQuickUnlocksSection(): EditorSectionConfig {
-  return {
-    id: 'quickUnlocks',
-    title: 'Quick Unlocks',
-    description: 'One-click actions to unlock common progression milestones.',
-    icon: 'pi pi-bolt',
-    fields: [],
-    collapsible: false,
-    defaultExpanded: true,
-    actions: getQuickUnlockActions().map((action) => ({
-      id: action.id,
-      label: action.label,
-      icon: action.icon,
-      variant: action.variant
-    }))
-  }
 }
 
 /**

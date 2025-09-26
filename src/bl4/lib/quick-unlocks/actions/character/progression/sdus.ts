@@ -1,12 +1,11 @@
-import { deepClone } from '../../utils'
-import { ALL_SDU_NODES } from '../constants'
-import type { QuickUnlockAction } from '../types'
+import { deepClone } from '../../../../utils'
+import { ALL_SDU_NODES } from '../../../constants'
+import type { QuickUnlockAction } from '../../../types'
 
 export const unlockAllSdusAction: QuickUnlockAction = {
   id: 'unlock-all-sdus',
   label: 'Unlock All SDUs',
-  icon: 'pi pi-check-circle',
-  variant: 'primary',
+  icon: 'pi pi-send',
   run(data: any) {
     const updatedData = deepClone(data ?? {})
 
@@ -20,13 +19,12 @@ export const unlockAllSdusAction: QuickUnlockAction = {
 
     const graphs: any[] = updatedData.progression.graphs
     const targetIndex = graphs.findIndex((graph) => graph?.name === 'sdu_upgrades')
-    const nodes = ALL_SDU_NODES.map((node) => ({ ...node }))
 
     if (targetIndex >= 0) {
       const existing = graphs[targetIndex] ?? {}
-      graphs[targetIndex] = { ...existing, name: 'sdu_upgrades', nodes }
+      graphs[targetIndex] = { ...existing, name: 'sdu_upgrades', nodes: ALL_SDU_NODES }
     } else {
-      graphs.push({ name: 'sdu_upgrades', nodes })
+      graphs.push({ name: 'sdu_upgrades', nodes: ALL_SDU_NODES })
     }
 
     return { data: updatedData }

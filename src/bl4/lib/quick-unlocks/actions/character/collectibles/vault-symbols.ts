@@ -1,0 +1,27 @@
+import { deepClone } from '../../../../utils'
+import { REGIONS, type Region } from '../../../constants'
+import type { QuickUnlockAction } from '../../../types'
+
+export const collectVaultSymbolsAction: QuickUnlockAction = {
+  id: 'collect-vault-symbols',
+  label: 'Collect Vault Symbols',
+  icon: 'pi pi-send',
+  variant: 'secondary',
+  run(data: any) {
+    const updatedData = deepClone(data ?? {})
+    const warnings: string[] = []
+
+    for (const region of REGIONS) {
+      for (let i = 0; i < region.vaultsymbols; i++) {
+        updatedData.stats.openworld.collectibles = updatedData.stats.openworld.collectibles || {}
+        updatedData.stats.openworld.collectibles.vaultsymbols = updatedData.stats.openworld.collectibles.vaultsymbols || {}
+        updatedData.stats.openworld.collectibles.vaultsymbols[`vaultsymbol_${region.name}_${i + 1}`] = 1
+      }
+    }
+
+    return {
+      data: updatedData,
+      warnings: warnings.length ? warnings : undefined
+    }
+  }
+}

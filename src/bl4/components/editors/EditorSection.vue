@@ -1,6 +1,6 @@
 <template>
   <section
-    class="rounded-2xl border border-border/60 bg-card/80 shadow-sm transition hover:border-border/80"
+    class="rounded-2xl bg-card/80 shadow-sm transition hover:border-border/80"
     :class="{ 'ring-1 ring-primary/30': expanded }"
     :data-collapsible="isCollapsible"
   >
@@ -32,18 +32,18 @@
         </div>
       </div>
 
-      <div class="flex flex-col items-center gap-3">
+      <div class="flex flex-row items-center gap-3">
         <div v-if="section.actions?.length" class="flex flex-wrap items-center gap-2">
           <button
             v-for="action in section.actions"
             :key="action.id"
             type="button"
-            class="inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+            class="inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-semibold uppercase"
             :class="[
               actionButtonClass(action.variant),
               action.disabled
                 ? 'opacity-60 cursor-not-allowed'
-                : 'hover:border-foreground/40 hover:text-foreground'
+                : 'hover:border-accent/40 hover:text-accent'
             ]"
             :disabled="action.disabled"
             :title="action.label"
@@ -62,7 +62,7 @@
           :aria-expanded="expanded"
           :aria-label="expanded ? 'Collapse section' : 'Expand section'"
         >
-          <i class="pi" :class="expanded ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
+          <i class="pi" :class="expanded ? 'pi-chevron-up' : 'pi-chevron-right'"></i>
         </button>
       </div>
     </div>
@@ -129,11 +129,11 @@ const getFieldCountLabel = (count: number) => {
 const actionButtonClass = (variant: 'primary' | 'secondary' | 'danger' | undefined) => {
   switch (variant) {
     case 'primary':
-      return 'border-primary/50 bg-primary/15 text-primary-foreground shadow-sm'
+      return 'border-primary/50 bg-primary/15 text-primary shadow-sm text-muted-foreground hover:text-foreground'
     case 'danger':
       return 'border-destructive/50 bg-destructive/15 text-destructive'
     default:
-      return 'border-border/60 bg-background/80 text-muted-foreground'
+      return 'border-border/60 bg-muted-foreground text-foreground'
   }
 }
 </script>

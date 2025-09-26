@@ -10,7 +10,7 @@ export interface SaveFile {
   jsonData: any             // Parsed JSON object for editing
   yamlError: string
   hasChanges: boolean
-  fileType?: FileTypeInfo   // File type detection info
+  fileType: FileTypeInfo   // File type detection info
   characterInfo?: {
     name: string
     level: string
@@ -227,7 +227,21 @@ export function useSaveFiles() {
       
       // Visual editing always creates changes
       file.hasChanges = true
-      console.log(`JSON changed for ${fileName} - hasChanges: ${file.hasChanges}`)
+
+      // Deduplicate unique_rewards to avoid duplicates introduced elsewhere
+      try {
+        if (Array.isArray(file.jsonData?.state?.unique_rewards)) {
+          file.jsonData.state.unique_rewards = Array.from(new Set(file.jsonData.state.unique_rewards))
+        }
+      } catch (e) {
+        // ignore
+      }
+
+      // Debug: log updated stats.challenge for the file (temporary)
+      try {
+        // eslint-disable-next-line no-console
+        console.debug('[useSaveFiles] handleJsonChange updated stats.challenge for', fileName, file.jsonData?.stats?.challenge)
+      } catch (e) {}
     }
   }
 

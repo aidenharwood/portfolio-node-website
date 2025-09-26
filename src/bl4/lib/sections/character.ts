@@ -98,7 +98,7 @@ export class CharacterInfoSection implements SerializableSection {
             validation: (value) => Number.isInteger(value) && value >= 0
         },
         {
-            path: 'state.equip_slots_unlocked',
+            path: 'state.inventory.equip_slots_unlocked',
             name: 'Unlocked Equipment Slots',
             type: 'multiselect',
             options: [
@@ -111,7 +111,7 @@ export class CharacterInfoSection implements SerializableSection {
             validation: (value) => Array.isArray(value) && value.every(v => Number.isInteger(v) && v >= 0 && v <= 8)
         },
         {
-            path: 'state.active_slot',
+            path: 'state.inventory.active_slot',
             name: 'Active Weapon Slot',
             type: 'select',
             options: [
