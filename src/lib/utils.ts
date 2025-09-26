@@ -41,3 +41,32 @@ export function getReadTime(text: string): number {
   const wordCount = text.split(/\s+/).filter(word => word.length > 0).length
   return Math.max(1, Math.ceil(wordCount / wordsPerMinute))
 }
+
+/**
+ * Deep merge two objects, preserving nested structures
+ */
+export function deepMerge(target: any, source: any): any {
+  if (!source || typeof source !== 'object') {
+    return target
+  }
+  
+  if (!target || typeof target !== 'object') {
+    return source
+  }
+  
+  const result = { ...target }
+  
+  for (const key in source) {
+    if (source.hasOwnProperty(key)) {
+      if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+        // Recursively merge objects
+        result[key] = deepMerge(target[key] || {}, source[key])
+      } else {
+        // For arrays and primitive values, replace directly
+        result[key] = source[key]
+      }
+    }
+  }
+  
+  return result
+}

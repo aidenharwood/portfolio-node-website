@@ -7,7 +7,7 @@ import BlogList from "@/pages/BlogList.vue";
 import BlogPost from "@/pages/BlogPost.vue";
 import Projects from "@/pages/Projects.vue";
 import ProjectDetail from "@/pages/ProjectDetail.vue";
-import BL4SaveEditor from "@/pages/BL4SaveEditor.vue";
+import { BL4SaveEditor } from "@/bl4";
 import { Terminal } from "@/components";
 
 const routes = [
