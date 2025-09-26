@@ -7,7 +7,6 @@ import type { EditorSectionConfig } from '../types/editor-interfaces'
 import { getYAMLBasedConfig } from './yaml-config'
 import type { BL4CharacterSave, BL4ProfileSave } from '../types/save-types'
 import type { SerializableSection, SlotBasedSection } from '../sections'
-import { getQuickUnlockActions } from '../quick-unlocks'
 
 // Cache for config to avoid recreating sections repeatedly
 let configCache: ReturnType<typeof getYAMLBasedConfig> | null = null

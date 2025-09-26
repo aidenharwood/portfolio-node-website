@@ -10,7 +10,7 @@ export interface SaveFile {
   jsonData: any             // Parsed JSON object for editing
   yamlError: string
   hasChanges: boolean
-  fileType: FileTypeInfo   // File type detection info
+  fileType?: FileTypeInfo   // File type detection info
   characterInfo?: {
     name: string
     level: string

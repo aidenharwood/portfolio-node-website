@@ -364,11 +364,14 @@ const handleFieldUpdate = (yamlPath: string, value: any) => {
 }
 
 const handleSectionAction = (actionId: string, sectionId: string) => {
+<<<<<<< HEAD
   if (sectionId === 'quickUnlocks') {
     handleQuickUnlockAction(actionId)
     return
   }
 
+=======
+>>>>>>> main
   const containerMatch = sectionId.match(/^(.+)_container$/)
   if (containerMatch) {
     const [, containerId] = containerMatch
@@ -410,6 +413,7 @@ const handleSectionAction = (actionId: string, sectionId: string) => {
   }
 }
 
+<<<<<<< HEAD
 // --- Quick Unlock Groups UI ---
 const saveType = computed(() => props.saveType)
 
@@ -432,6 +436,8 @@ const handleQuickUnlockAction = (actionId: string) => {
   emit('update:jsonData', contractedData)
 }
 
+=======
+>>>>>>> main
 const handleAddItemToContainer = (containerId: string) => {
   const config = getBL4Config(props.jsonData, activeTab.value)
   const sections = config.filter(
