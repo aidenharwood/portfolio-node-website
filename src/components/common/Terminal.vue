@@ -236,7 +236,7 @@ const connectWebSocket = () => {
           
           messages.forEach(msg => {
             try {
-              ws.send(msg);
+              ws?.send(msg);
               console.log(`Sent message: ${msg}`);
             } catch (error) {
               console.log('Could not send message:', error);

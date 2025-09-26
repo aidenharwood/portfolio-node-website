@@ -95,7 +95,7 @@
   </div>
 </template><script setup lang="ts">
 import { computed } from 'vue'
-import type { GamePlatform } from '@/composables/useSteamId'
+import type { GamePlatform } from '../composables/useSteamId'
 
 interface SteamProfile {
   personaName?: string

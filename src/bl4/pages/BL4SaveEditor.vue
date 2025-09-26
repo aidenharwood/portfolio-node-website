@@ -40,7 +40,7 @@
       </section>
 
       <!-- Upload Section -->
-      <section v-if="!sessionId && steamIdValid" class="bg-card rounded-lg border p-6">
+  <section v-if="!sessionId && steamIdValid && !hasLoadedFiles" class="bg-card rounded-lg border p-6 transition-all duration-300 ease-out">
         <div class="flex items-center gap-3 mb-6">
           <div class="w-8 h-8 bg-green-500/20 rounded-md flex items-center justify-center">
             <i class="pi pi-folder-open text-green-500"></i>
@@ -53,8 +53,8 @@
         />
       </section>
 
-            <!-- Success Message -->
-      <div v-if="sessionId && saveFiles.length > 0" class="bg-accent/10 border border-accent/20 rounded-lg p-6">
+    <!-- Success Message -->
+  <div v-if="hasLoadedFiles" class="bg-accent/10 border border-accent/20 rounded-lg p-6">
         <div class="flex items-center gap-3">
           <i class="pi pi-check-circle text-accent text-xl"></i>
           <div>
@@ -65,22 +65,44 @@
       </div>
 
       <!-- File Editor Section -->
-      <section v-if="saveFiles.length > 0" class="bg-card rounded-lg border">
+      <section 
+  v-if="hasLoadedFiles" 
+        class="bg-card rounded-lg border"
+        @drop.prevent="handleEditorDrop"
+        @dragover.prevent="handleEditorDragOver"
+        @dragleave="handleEditorDragLeave"
+        :class="{ 'ring-2 ring-blue-400 ring-opacity-50': isDragOverEditor }"
+      >
         <div class="flex items-center justify-between p-6 border-b">
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 bg-purple-500/20 rounded-md flex items-center justify-center">
               <i class="pi pi-file-edit text-purple-500"></i>
             </div>
             <h2 class="text-xl font-semibold">Save Files Editor</h2>
+            <span v-if="isDragOverEditor" class="text-sm text-blue-500 font-medium">
+              Drop to replace save files
+            </span>
           </div>
-          <button 
-            @click="handleDownload" 
-            :disabled="downloading || !sessionId"
-            class="inline-flex items-center gap-2 px-4 py-2 bg-accent text-accent-foreground rounded-md hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            <i class="pi pi-download" :class="{ 'pi-spin pi-spinner': downloading }"></i>
-            {{ downloading ? 'Creating ZIP...' : 'Download Modified Saves' }}
-          </button>
+          <div class="flex items-center gap-2">
+            <button 
+              @click="handleDownload('sav')" 
+              :disabled="downloading || (!sessionId && saveFiles.some(f => !f.fileType || f.fileType.format === 'sav'))"
+              class="inline-flex items-center gap-2 px-4 py-2 bg-accent text-accent-foreground rounded-md hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Download as SAV files"
+            >
+              <i class="pi pi-download" :class="{ 'pi-spin pi-spinner': downloading }"></i>
+              {{ downloading ? 'Creating ZIP...' : 'Download SAV' }}
+            </button>
+            <button 
+              @click="handleDownload('yaml')" 
+              :disabled="downloading"
+              class="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Download as YAML files"
+            >
+              <i class="pi pi-file-export" :class="{ 'pi-spin pi-spinner': downloading }"></i>
+              Download YAML
+            </button>
+          </div>
         </div>
 
         <div class="p-6">
@@ -88,6 +110,7 @@
             :saveFiles="saveFiles"
             v-model:activeSaveFile="activeSaveFile"
             @yamlChange="handleYamlChange"
+            @jsonChange="handleJsonChange"
             @createBackup="createBackup"
             @revertFile="revertFile"
           />
@@ -114,12 +137,14 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import { useSteamId } from '../composables/useSteamId'
-import { useSaveFiles } from '../composables/useSaveFiles'
-import SteamIdInput from '@/components/bl4/SteamIdInput.vue'
-import SaveFolderUpload from '@/components/bl4/SaveFolderUpload.vue'
-import SaveFileEditor from '@/components/bl4/SaveFileEditor.vue'
+import { onMounted, ref, computed } from 'vue'
+import { useSteamId, useSaveFiles } from '../composables'
+import SteamIdInput from '../components/SteamIdInput.vue'
+import SaveFolderUpload from '../components/SaveFolderUpload.vue'  
+import SaveFileEditor from '../components/editors/SaveFileEditor.vue'
+
+// Drag and drop state
+const isDragOverEditor = ref(false)
 
 // Steam ID composable
 const {
@@ -144,10 +169,13 @@ const {
   sessionId,
   uploadSaveFolder,
   handleYamlChange,
+  handleJsonChange,
   createBackup,
   revertFile,
   downloadSaveFolder
 } = useSaveFiles()
+
+const hasLoadedFiles = computed(() => saveFiles.value.length > 0)
 
 // Initialize Steam ID from cookie on mount
 onMounted(() => {
@@ -164,9 +192,33 @@ async function handleFolderUpload(files: FileList) {
 }
 
 // Handle download with Steam ID
-async function handleDownload() {
-  await downloadSaveFolder(steamId.value)
+async function handleDownload(format: 'sav' | 'yaml' = 'sav') {
+  await downloadSaveFolder(steamId.value, format)
 }
+
+// Drag and drop handlers for editor area
+function handleEditorDragOver(_: DragEvent) {
+  isDragOverEditor.value = true
+}
+
+function handleEditorDragLeave(_: DragEvent) {
+  isDragOverEditor.value = false
+}
+
+async function handleEditorDrop(event: DragEvent) {
+  isDragOverEditor.value = false
+  
+  const files = event.dataTransfer?.files
+  if (files && files.length > 0) {
+    try {
+      // Replace current save files with the new ones
+      await uploadSaveFolder(files, steamId.value)
+    } catch (err) {
+      // Error is already handled in the composable
+    }
+  }
+}
+
 </script>
 
 <style scoped>
