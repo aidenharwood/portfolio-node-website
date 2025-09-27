@@ -52,7 +52,7 @@ export function getYAMLBasedConfig(saveData: BL4CharacterSave | BL4ProfileSave) 
       {
         id: 'backpack',
         title: 'Backpack',
-        icon: 'pi pi-bag', 
+        icon: 'pi pi-briefcase', 
         sectionId: 'backpack'
       },
       {
