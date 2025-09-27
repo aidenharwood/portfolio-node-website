@@ -109,7 +109,7 @@
             @sectionAction="handleSectionAction"
           />
         </div>
-        <div v-else class="space-y-4 p-4 section-stack maximized-section">
+        <div v-else class="space-y-4 section-stack maximized-section">
           <EditorSection
             v-for="section in currentTabSections"
             :key="section.id"

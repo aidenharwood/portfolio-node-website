@@ -4,7 +4,7 @@
 			class="grid gap-4 p-4 sm:p-5"
 			:class="inlineLayout ? 'sm:grid-cols-[minmax(200px,0.45fr)_1fr] sm:items-center sm:gap-6' : 'sm:grid-cols-[minmax(200px,0.45fr)_1fr] sm:items-start'"
 		>
-			<div class="flex flex-col gap-3">
+			<div class="flex flex-col">
 				<div class="flex items-center gap-2 text-sm font-semibold text-foreground">
 					<span class="truncate">{{ props.semanticName }}</span>
 					<button
@@ -16,26 +16,6 @@
 						<i class="pi pi-info-circle"></i>
 						<span class="sr-only">Field help</span>
 					</button>
-				</div>
-
-				<div
-					v-if="displayType || showPath"
-					class="flex flex-wrap items-center gap-2 text-[0.7rem] font-semibold uppercase tracking-wide text-muted-foreground"
-				>
-					<span
-						v-if="displayType"
-						class="inline-flex items-center gap-1 rounded-full border border-border/50 bg-background/80 px-2 py-1"
-					>
-						<i class="pi pi-tag text-[0.65rem]"></i>
-						{{ displayType }}
-					</span>
-					<span
-						v-if="showPath"
-						class="inline-flex items-center gap-1 rounded-full border border-border/50 bg-background/80 px-2 py-1 font-mono normal-case"
-					>
-						<i class="pi pi-code text-[0.65rem]"></i>
-						{{ props.yamlPath }}
-					</span>
 				</div>
 			</div>
 

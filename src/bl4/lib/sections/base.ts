@@ -146,7 +146,6 @@ export abstract class BaseInventorySection implements SlotBasedSection {
           actions: [
             {
               id: 'remove-item',
-              label: 'Remove Item',
               icon: 'pi pi-trash',
               variant: 'danger' as const
             }

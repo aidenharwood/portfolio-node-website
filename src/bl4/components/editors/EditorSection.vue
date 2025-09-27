@@ -12,19 +12,13 @@
       <div class="flex flex-1 items-start gap-4">
         <div
           v-if="section.icon"
-          class="flex h-12 w-12 items-center justify-center rounded-xl border border-border/40 bg-background/90 text-lg text-accent shadow-sm"
+          class="flex h-12 w-12 items-center justify-center rounded-xl text-2xl text-accent shadow-sm"
         >
           <i :class="section.icon"></i>
         </div>
         <div class="flex flex-col gap-2">
           <div class="flex flex-wrap items-center gap-3">
             <h4 class="text-base font-semibold text-foreground">{{ section.title }}</h4>
-            <span
-              v-if="hasFields"
-              class="inline-flex items-center gap-1 rounded-full border border-border/50 bg-background/75 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
-            >
-              {{ getFieldCountLabel(section.fields.length) }}
-            </span>
           </div>
           <p v-if="section.description" class="text-sm leading-relaxed text-muted-foreground">
             {{ section.description }}
@@ -48,7 +42,7 @@
             :title="action.label"
             @click.stop="handleActionClick(action.id)"
           >
-            <i v-if="action.icon" :class="[action.icon, action.label ? 'text-sm' : 'text-2xl']"></i>
+            <i v-if="action.icon" :class="[action.icon, action.label ? 'text-xl' : 'text-2xl']"></i>
             <span v-if="action.label">{{ action.label }}</span>
           </button>
         </div>
@@ -67,7 +61,7 @@
     </div>
 
     <div v-if="hasFields && (expanded || section.collapsible === false)" class="section-content space-y-4 p-5">
-      <div class="section-fields">
+      <div class="section-fields space-y-2">
         <EditorField
           v-for="field in section.fields"
           :key="field.yamlPath"
@@ -130,7 +124,7 @@ const getFieldCountLabel = (count: number) => {
 const actionButtonClass = (variant: 'primary' | 'secondary' | 'danger' | undefined) => {
   switch (variant) {
     case 'primary':
-      return 'bg-primary/15 text-accent shadow-sm text-muted-foreground hover:text-foreground'
+      return 'bg-primary/50 text-accent shadow-sm text-muted-foreground hover:text-foreground border-primary/70'
     case 'danger':
       return 'border-destructive/50 bg-destructive/15 text-destructive'
     default:

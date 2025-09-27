@@ -7,7 +7,7 @@
             class="group relative inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
             :class="[
               props.activeSaveFile === file.name
-                ? 'text-muted-foreground shadow-sm decoration-2 decoration-accent underline-offset-8'
+                ? 'background-none text-muted-foreground border-none underline underline-offset-4 decoration-accent/50'
                 : 'border-border/60 bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground'
             ]" @click="emit('update:activeSaveFile', file.name)">
             <span class="text-base">
@@ -57,14 +57,14 @@
               </span>
             </div>
           </div>
-          <div class="flex items-center gap-2">
+          <!-- <div class="flex items-center gap-2">
             <button v-if="file.hasChanges" type="button"
               class="inline-flex items-center gap-2 px-2 py-1 bg-accent text-accent-foreground rounded-md hover:bg-accent/90 transition-colors"
               @click="revertFile(file.name)" title="Revert changes">
               <i class="pi pi-undo text-xs"></i>
               Revert
             </button>
-          </div>
+          </div> -->
         </div>
 
         <div class="flex flex-col gap-4">
