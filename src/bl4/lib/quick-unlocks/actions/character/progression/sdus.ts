@@ -5,7 +5,7 @@ import type { QuickUnlockAction } from '../../../types'
 export const unlockAllSdusAction: QuickUnlockAction = {
   id: 'unlock-all-sdus',
   label: 'Unlock All SDUs',
-  icon: 'pi pi-send',
+  icon: 'pi pi-lock',
   run(data: any) {
     const updatedData = deepClone(data ?? {})
 

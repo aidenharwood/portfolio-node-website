@@ -6,7 +6,7 @@ import type { QuickUnlockAction } from '../../../types'
 export const completeAncientCrawlersAction: QuickUnlockAction = {
   id: 'complete-ancient-crawlers',
   label: 'Complete Ancient Crawlers',
-  icon: 'pi pi-send',
+  icon: 'pi pi-lock',
   variant: 'secondary',
   run(data: any) {
     const updatedData = deepClone(data ?? {})

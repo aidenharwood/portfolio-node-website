@@ -5,7 +5,7 @@ import type { QuickUnlockAction } from '../../../types'
 export const unlockMapLocationsAction: QuickUnlockAction = {
   id: 'unlock-map-locations',
   label: 'Reveal All Locations',
-  icon: 'pi pi-send',
+  icon: 'pi pi-lock',
   variant: 'secondary',
   run(data: any) {
     const updatedData = deepClone(data ?? {})

@@ -1,18 +1,18 @@
 <template>
   <section
-    class="rounded-2xl bg-card/80 shadow-sm transition hover:border-border/80"
-    :class="{ 'ring-1 ring-primary/30': expanded }"
+    class="editor-section rounded-2xl bg-card/80 shadow-sm transition hover:border-border/80"
+    :class="{ 'compact-section': section && section.id && section.id.includes('_slot_') }"
     :data-collapsible="isCollapsible"
   >
     <div
-      class="flex flex-col gap-4 border-b border-border/40 p-5 sm:flex-row sm:items-start sm:justify-between"
+      class="section-header flex flex-col gap-4 border-b border-border/40 p-5 sm:flex-row sm:items-start sm:justify-between"
       :class="isCollapsible ? 'cursor-pointer hover:bg-background/60' : ''"
       @click="isCollapsible ? toggleSection() : undefined"
     >
       <div class="flex flex-1 items-start gap-4">
         <div
           v-if="section.icon"
-          class="flex h-12 w-12 items-center justify-center rounded-xl border border-border/40 bg-background/90 text-lg text-primary shadow-sm"
+          class="flex h-12 w-12 items-center justify-center rounded-xl border border-border/40 bg-background/90 text-lg text-accent shadow-sm"
         >
           <i :class="section.icon"></i>
         </div>
@@ -42,8 +42,7 @@
             :class="[
               actionButtonClass(action.variant),
               action.disabled
-                ? 'opacity-60 cursor-not-allowed'
-                : 'hover:border-accent/40 hover:text-accent'
+                ? 'opacity-60 cursor-not-allowed' : 'hover:border-muted-foreground/50'
             ]"
             :disabled="action.disabled"
             :title="action.label"
@@ -57,7 +56,7 @@
         <button
           v-if="isCollapsible"
           type="button"
-          class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-background/80 text-xs font-semibold text-muted-foreground transition hover:border-border hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+          class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-background/80 text-xs font-semibold text-muted-foreground transition hover:border-border hover:text-foreground focus:outline-none focus-visible:ring-2 "
           @click.stop="toggleSection()"
           :aria-expanded="expanded"
           :aria-label="expanded ? 'Collapse section' : 'Expand section'"
@@ -67,14 +66,16 @@
       </div>
     </div>
 
-    <div v-if="hasFields && (expanded || section.collapsible === false)" class="space-y-4 p-5">
-      <EditorField
-        v-for="field in section.fields"
-        :key="field.yamlPath"
-        v-bind="field"
-        :value="getFieldValue(field.yamlPath)"
-        @update="(value) => handleFieldUpdate(field.yamlPath, value)"
-      />
+    <div v-if="hasFields && (expanded || section.collapsible === false)" class="section-content space-y-4 p-5">
+      <div class="section-fields">
+        <EditorField
+          v-for="field in section.fields"
+          :key="field.yamlPath"
+          v-bind="field"
+          :value="getFieldValue(field.yamlPath)"
+          @update="(value) => handleFieldUpdate(field.yamlPath, value)"
+        />
+      </div>
     </div>
   </section>
 </template>
@@ -129,11 +130,11 @@ const getFieldCountLabel = (count: number) => {
 const actionButtonClass = (variant: 'primary' | 'secondary' | 'danger' | undefined) => {
   switch (variant) {
     case 'primary':
-      return 'border-primary/50 bg-primary/15 text-primary shadow-sm text-muted-foreground hover:text-foreground'
+      return 'bg-primary/15 text-accent shadow-sm text-muted-foreground hover:text-foreground'
     case 'danger':
       return 'border-destructive/50 bg-destructive/15 text-destructive'
     default:
-      return 'border-border/60 bg-muted-foreground text-foreground'
+      return 'bg-muted-foreground text-foreground'
   }
 }
 </script>

@@ -67,7 +67,7 @@
 				>
 					<input
 						type="checkbox"
-						class="h-4 w-4 rounded border-border/60 text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+						class="h-4 w-4 rounded border-border/60 text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
 						:checked="Boolean(localValue)"
 						@change="handleBooleanChange"
 					/>
@@ -95,7 +95,7 @@
 						>
 							<input
 								type="checkbox"
-								class="h-4 w-4 rounded border-border/60 text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+								class="h-4 w-4 rounded border-border/60 text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
 								:checked="isMultiselectOptionSelected(option.value)"
 								@change="(event) => handleMultiselectOptionChange(option.value, event)"
 							/>
@@ -140,7 +140,7 @@
 									<label class="inline-flex items-center gap-3">
 										<input
 											type="checkbox"
-											class="h-4 w-4 rounded border-border/60 text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+											class="h-4 w-4 rounded border-border/60 text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
 											:checked="Boolean(item)"
 											@change="(event) => handleArrayItemChange(index, event)"
 										/>
@@ -273,7 +273,7 @@
 				<button
 					v-else-if="props.inputType === 'button'"
 					type="button"
-					class="inline-flex items-center justify-center gap-2 rounded-lg border border-primary/50 bg-primary/15 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-primary-foreground transition hover:bg-primary/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+					class="inline-flex items-center justify-center gap-2 rounded-lg border bg-primary/15 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-accent-foreground transition hover:bg-primary/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
 					@click="handleButtonClick"
 				>
 					<i class="pi pi-bolt text-xs"></i>

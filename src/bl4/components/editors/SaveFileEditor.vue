@@ -20,7 +20,6 @@
           </button>
         </div>
         <div class="flex items-center gap-3 self-start md:self-auto md:pl-4">
-          <span class="hidden text-xs font-semibold uppercase tracking-wide text-muted-foreground sm:block">View</span>
           <div class="flex gap-1 rounded-xl border border-border/60 bg-background/80 p-1 shadow-sm">
             <button type="button"
               class="flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"

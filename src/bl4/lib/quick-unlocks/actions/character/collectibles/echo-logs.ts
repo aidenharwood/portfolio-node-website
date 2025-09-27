@@ -13,7 +13,7 @@ const REGION_SLUG_MAP : Record<string, string> = {
 export const collectEchoLogsAction: QuickUnlockAction = {
   id: 'collect-echo-logs',
   label: 'Collect Echo Logs',
-  icon: 'pi pi-send',
+  icon: 'pi pi-lock',
   variant: 'secondary',
   run(data: any) {
     const updatedData = deepClone(data ?? {})

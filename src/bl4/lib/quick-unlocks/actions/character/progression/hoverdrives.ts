@@ -5,7 +5,7 @@ import type { QuickUnlockAction } from '../../../types'
 export const unlockAllHoverdrivesAction: QuickUnlockAction = {
   id: 'unlock-all-hoverdrives',
   label: 'Unlock All Hoverdrives',
-  icon: 'pi pi-send',
+  icon: 'pi pi-lock',
   run(data: any) {
     const updatedData = deepClone(data ?? {})
     const warnings: string[] = []

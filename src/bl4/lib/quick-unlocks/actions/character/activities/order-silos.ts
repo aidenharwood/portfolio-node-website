@@ -6,7 +6,7 @@ import type { QuickUnlockAction } from '../../../types'
 export const completeOrderSilosAction: QuickUnlockAction = {
   id: 'complete-order-silos',
   label: 'Complete Order Silos',
-  icon: 'pi pi-send',
+  icon: 'pi pi-lock',
   variant: 'secondary',
   run(data: any) {
     const updatedData = deepClone(data ?? {})

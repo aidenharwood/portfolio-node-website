@@ -5,8 +5,19 @@
     >  
       <!-- Quick Unlocks Section: Grouped Buttons -->
       <div class="space-y-4 mb-4">
-        <div class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Quick Unlocks
+        <div class="flex items-center justify-between gap-4">
+          <div class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Quick Unlocks</div>
+          <div>
+            <button
+              type="button"
+              class="unlock-everything-btn inline-flex items-center gap-3 rounded-md border border-border/60 bg-accent/90 px-4 py-2 text-sm font-semibold text-accent-foreground hover:brightness-95 transition"
+              :class="{ 'quick-action-animate': quickActionStates['unlock-everything'] }"
+              @click="handleUnlockEverything"
+            >
+              <i class="pi pi-unlock text-base"></i>
+              <span>Unlock everything</span>
+            </button>
+          </div>
         </div>
         <div class="flex flex-wrap gap-6">
           <div v-for="group in quickUnlockGroups" :key="group.id" class="min-w-[180px]">
@@ -26,7 +37,7 @@
                 <!-- Icon container keeps a fixed size so swapping icons doesn't change layout -->
                 <span class="quick-action-icon" aria-hidden="true">
                   <i v-if="action.icon" :class="action.icon" class="icon-original" />
-                  <i class="pi pi-check icon-check" />
+                  <i class="pi pi-unlock icon-check" />
                 </span>
                 <span>{{ action.label }}</span>
               </button>
@@ -82,7 +93,7 @@
         </div>
       </div>
 
-      <div v-else class="border-b border-b/60 rounded-xl border bg-none p-4">
+      <div v-else class="rounded-xl border bg-none p-4">
         <div v-if="currentTabSections.length === 1" class="space-y-4">
           <EditorSection
             :key="currentTabSections[0].id"
@@ -424,6 +435,7 @@ const quickUnlockGroups = computed(() => getQuickUnlockGroups(saveType.value))
 const quickActionStates = ref<Record<string, boolean>>({})
 
 function triggerQuickActionAnimation(actionId: string) {
+  if (!quickActionStates.value) quickActionStates.value = {}
   quickActionStates.value[actionId] = true
   setTimeout(() => {
     quickActionStates.value[actionId] = false
@@ -442,6 +454,56 @@ const handleQuickUnlockAction = (actionId: string) => {
   const contractedData = contractSaveDataFromItemContainers(result.data)
   emit('update:jsonData', contractedData)
   triggerQuickActionAnimation(actionId)
+}
+
+const handleUnlockEverything = async () => {
+  // Fire all quick-unlock actions 'simultaneously' from the same snapshot and animate all buttons at once.
+  const groups = quickUnlockGroups.value || []
+
+  // Flatten actions preserving order
+  const actions: Array<{ id: string } & any> = []
+  for (const group of groups) {
+    for (const action of group.actions) {
+      actions.push(action)
+    }
+  }
+
+  if (!actions.length) return
+
+  // Snapshot of the current data so all actions operate from the same base
+  const baseData = yamlData.value
+
+  // Trigger all animations at once so UI shows every button activating
+  for (const action of actions) {
+    triggerQuickActionAnimation(action.id)
+  }
+  // also animate the big button
+  triggerQuickActionAnimation('unlock-everything')
+
+  // Run all actions in parallel (they run synchronously so this wraps them into promises)
+  const promises = actions.map((action) => {
+    return Promise.resolve().then(() => {
+      try {
+        return runQuickUnlock(action.id, baseData)
+      } catch (err) {
+        console.warn(`Quick unlock '${action.id}' failed during parallel apply:`, err)
+        return null
+      }
+    })
+  })
+
+  const results = await Promise.all(promises)
+
+  // Merge results: start from base and apply each result's data in order (deterministic merge)
+  let mergedData = baseData
+  for (const res of results) {
+    if (res && res.data) {
+      mergedData = res.data
+    }
+  }
+
+  const contractedData = contractSaveDataFromItemContainers(mergedData)
+  emit('update:jsonData', contractedData)
 }
 
 const handleAddItemToContainer = (containerId: string) => {
@@ -680,6 +742,53 @@ const getTabIcon = (icon?: string) => {
   gap: var(--editor-field-gap);
 }
 
+/* Compact inventory sections use slightly reduced padding and gaps */
+:deep(.editor-section.compact-section) {
+  border-radius: 0.85rem;
+}
+
+:deep(.editor-section.compact-section .section-header) {
+  padding: 0.75rem 1rem;
+}
+
+:deep(.editor-section.compact-section .section-content) {
+  padding: 0 0.75rem 0.75rem;
+}
+
+:deep(.editor-section.compact-section .section-fields) {
+  gap: 0.5rem;
+}
+
+/* Make individual fields inside compact inventory sections denser */
+:deep(.editor-section.compact-section .editor-field) {
+  padding: 0.25rem 0 !important;
+}
+
+:deep(.editor-section.compact-section .editor-field > .grid) {
+  padding: 0.5rem !important;
+  gap: 0.5rem !important;
+}
+
+/* Reduce the size of the header icon for compact inventory entries */
+:deep(.editor-section.compact-section .section-header .h-12.w-12) {
+  width: 2.25rem !important;
+  height: 2.25rem !important;
+}
+
+/* Tighten inputs inside compact fields */
+:deep(.editor-section.compact-section .editor-field .input-field),
+:deep(.editor-section.compact-section .editor-field input[type='text']),
+:deep(.editor-section.compact-section .editor-field select) {
+  padding: 0.35rem 0.5rem !important;
+  height: 1.9rem !important;
+  font-size: 0.875rem !important;
+}
+
+/* Reduce borders and radius slightly to save vertical space */
+:deep(.editor-section.compact-section .editor-field .rounded-xl) {
+  border-radius: 0.5rem !important;
+}
+
 :deep(.editor-field) {
   padding: 0.5rem 0;
 }
@@ -718,8 +827,6 @@ const getTabIcon = (icon?: string) => {
 .quick-action-animate {
   animation: quickActionPulse 0.7s cubic-bezier(.4,0,.2,1);
   box-shadow: 0 0 0 4px oklch(var(--accent) / 0.25), 0 2px 8px -2px oklch(var(--accent) / 0.5);
-  border-color: oklch(var(--accent));
-  background: linear-gradient(90deg, oklch(var(--accent) / 0.18), oklch(var(--muted) / 0.6));
   color: oklch(var(--accent-foreground));
 }
 
@@ -746,6 +853,15 @@ const getTabIcon = (icon?: string) => {
   opacity: 0;
   transform: translate(-50%, -60%) scale(0.85);
   color: oklch(var(--accent));
+}
+
+.unlock-everything-btn {
+  --btn-accent: oklch(var(--accent));
+  --btn-accent-foreground: oklch(var(--accent-foreground));
+}
+
+.unlock-everything-btn i {
+  font-size: 1rem;
 }
 
 .quick-action-animate .quick-action-icon .icon-original {

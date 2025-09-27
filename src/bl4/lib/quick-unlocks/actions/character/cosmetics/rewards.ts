@@ -5,7 +5,7 @@ import type { QuickUnlockAction } from '../../../types'
 export const unlockAllRewardPacksAction: QuickUnlockAction = {
   id: 'unlock-reward-packs',
   label: 'Unlock All Reward Packs',
-  icon: 'pi pi-send',
+  icon: 'pi pi-lock',
   variant: 'secondary',
   run(data: any) {
     const updatedData = deepClone(data ?? {})
@@ -17,7 +17,7 @@ export const unlockAllRewardPacksAction: QuickUnlockAction = {
         updatedData.state.unique_rewards.push(pack)
       }
     });
-    
+
     return {
       data: updatedData,
       warnings: warnings.length ? warnings : undefined

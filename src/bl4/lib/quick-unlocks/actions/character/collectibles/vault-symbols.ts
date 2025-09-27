@@ -5,7 +5,7 @@ import type { QuickUnlockAction } from '../../../types'
 export const collectVaultSymbolsAction: QuickUnlockAction = {
   id: 'collect-vault-symbols',
   label: 'Collect Vault Symbols',
-  icon: 'pi pi-send',
+  icon: 'pi pi-lock',
   variant: 'secondary',
   run(data: any) {
     const updatedData = deepClone(data ?? {})

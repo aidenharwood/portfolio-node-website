@@ -10,7 +10,7 @@ const indexToLetter = (index: number): string => {
 export const completeAllVaultsAction: QuickUnlockAction = {
   id: 'complete-vaults',
   label: 'Complete Vaults',
-  icon: 'pi pi-send',
+  icon: 'pi pi-lock',
   variant: 'secondary',
   run(data: any) {
     const updatedData = deepClone(data ?? {})

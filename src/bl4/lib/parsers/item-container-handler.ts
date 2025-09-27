@@ -221,12 +221,9 @@ export function contractSaveDataFromItemContainers(saveData: any): any {
       // Create a compact array (no gaps) from the sorted items
       const compactItems = slotItems.map(slot => slot.itemData)
       
-      console.log(`Contracting ${sectionId}: ${slotItems.length} items -> ${compactItems.length} compact items`)
-      
       const updatedData = setItemContainerData(contractedData, sectionId, compactItems)
       Object.assign(contractedData, updatedData)
     } else {
-      console.log(`Contracting ${sectionId}: no items, clearing section`)
       // If no items, we should clear the section completely
       const updatedData = setItemContainerData(contractedData, sectionId, [])
       Object.assign(contractedData, updatedData)

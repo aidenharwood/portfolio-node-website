@@ -5,7 +5,7 @@ import { COSMETICS } from '../../../constants'
 export const unlockAllCosmeticsAction: QuickUnlockAction = {
   id: 'unlock-cosmetics',
   label: 'Unlock All Cosmetics (Except Shinies)',
-  icon: 'pi pi-send',
+  icon: 'pi pi-lock',
   variant: 'secondary',
   run(data: any) {
     const updatedData = deepClone(data ?? {})

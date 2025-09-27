@@ -5,7 +5,7 @@ import type { QuickUnlockAction } from '../../../types'
 export const collectElectiSafesAction: QuickUnlockAction = {
   id: 'collect-electi-safes',
   label: 'Collect Electi Safes',
-  icon: 'pi pi-send',
+  icon: 'pi pi-lock',
   variant: 'secondary',
   run(data: any) {
     const updatedData = deepClone(data ?? {})
