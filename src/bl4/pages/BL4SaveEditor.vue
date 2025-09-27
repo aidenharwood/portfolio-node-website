@@ -193,6 +193,7 @@ async function handleFolderUpload(files: FileList) {
 
 // Handle download with Steam ID
 async function handleDownload(format: 'sav' | 'yaml' = 'sav') {
+  console.log("Downloading in format:", format, "using ID: ", steamId.value);
   await downloadSaveFolder(steamId.value, format)
 }
 

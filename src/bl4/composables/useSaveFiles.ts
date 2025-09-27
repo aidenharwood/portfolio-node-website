@@ -416,9 +416,7 @@ export function useSaveFiles() {
       // Handle YAML files - always package converted SAV(s) into a ZIP
       // (single-file case: produce a zip with one .sav entry)
       if (saveFiles.value.length === 1) {
-        const JSZip = (await import('jszip')).default
-        const zip = new JSZip()
-
+        // For single file, if zip=true, just download the response ZIP directly
         const file = saveFiles.value[0]
         const response = await fetch(`${API_BASE}/api/bl4/convert-yaml-to-sav?zip=true`, {
           method: 'POST',
@@ -436,12 +434,7 @@ export function useSaveFiles() {
           throw new Error(data.error || `Failed to convert ${file.name}`)
         }
 
-        const savArrayBuffer = await response.arrayBuffer()
-        const baseName = file.name.replace(/\.[^.]+$/, '')
-        const savFileName = `${baseName}.sav`
-        zip.file(savFileName, savArrayBuffer)
-
-        const zipBlob = await zip.generateAsync({ type: 'blob' })
+        const zipBlob = await response.blob()
         downloadBlob(zipBlob, 'bl4-saves-sav.zip')
       } else {
         // Download multiple files as ZIP
