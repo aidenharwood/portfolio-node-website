@@ -72,18 +72,18 @@
               class="inline-flex items-center gap-2 px-4 py-2 bg-accent text-accent-foreground rounded-md hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               title="Download as SAV files">
               <i class="pi pi-download" :class="{ 'pi-spin pi-spinner': downloading }"></i>
-              {{ downloading ? 'Creating ZIP...' : 'Download SAV' }}
+              {{ downloading ? 'Creating ZIP...' : 'SAV' }}
             </button>
-            <button @click="handleDownload('yaml')" :disabled="downloading"
-              class="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            <button @click="handleDownload('yaml')" :disabled="downloading || saveFiles.length === 0"
+              class="inline-flex items-center gap-2 px-4 py-2 bg-accent text-accent-foreground rounded-md hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               title="Download as YAML files">
-              <i class="pi pi-file-export" :class="{ 'pi-spin pi-spinner': downloading }"></i>
-              Download YAML
+              <i class="pi pi-download" :class="{ 'pi-spin pi-spinner': downloading }"></i>
+              {{ downloading ? 'Creating ZIP...' : 'YAML' }}
             </button>
-            <button @click="clearFiles" 
-              class="inline-flex items-center gap-2 px-4 py-2 bg-destructive text-white rounded-md hover:bg-destructive/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            <button @click="confirmAndClear" 
+              class="inline-flex items-center gap-2 px-4 py-2 bg-destructive text-accent-foreground-destructive rounded-md hover:bg-destructive/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               title="Close editor and unload files">
-              <i class="pi pi-times text-xs"></i>
+              <i class="pi pi-times"></i>
               Close
             </button>
           </div>
@@ -207,6 +207,16 @@ async function handleEditorDrop(event: DragEvent) {
       // Error is already handled in the composable
     }
   }
+}
+
+// Confirm and clear files at page level (mirrors SaveFileEditor confirmation)
+function confirmAndClear() {
+  const hasUnsaved = saveFiles.value.some(f => f.hasChanges)
+  if (hasUnsaved) {
+    const confirmed = window.confirm('You have unsaved changes. Close and discard changes?')
+    if (!confirmed) return
+  }
+  clearFiles()
 }
 
 </script>

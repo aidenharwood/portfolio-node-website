@@ -69,6 +69,13 @@
               <i class="pi pi-undo text-xs"></i>
               Revert
             </button>
+            <!-- Close editor / unload files (confirmation if unsaved changes exist) -->
+            <button type="button" @click="closeEditor()"
+              class="inline-flex items-center gap-2 rounded-lg border border-border/60 bg-background px-3 py-1.5 text-sm font-semibold text-muted-foreground transition hover:border-destructive hover:text-destructive focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40"
+              title="Close editor and unload files">
+              <i class="pi pi-times text-xs"></i>
+              Close
+            </button>
           </div>
         </div>
 
@@ -176,5 +183,15 @@ function getClass(characterInfo: { className?: string }): string {
 function getSaveType(fileName: string): 'character' | 'profile' {
   if (fileName === 'profile.sav') return 'profile'
   return 'character'
+}
+
+// Close editor, but confirm with user if there are unsaved changes
+function closeEditor() {
+  const hasUnsaved = props.saveFiles.some(f => f.hasChanges)
+  if (hasUnsaved) {
+    const confirmed = window.confirm('You have unsaved changes. Close and discard changes?')
+    if (!confirmed) return
+  }
+  emit('close')
 }
 </script>
