@@ -12,12 +12,8 @@
         <div class="flex items-center gap-2 text-sm text-muted-foreground">
           <i class="pi pi-info-circle"></i>
           <span>Decryption logic based on the excellent work by</span>
-          <a 
-            href="https://github.com/glacierpiece" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            class="text-accent hover:text-accent/80 underline transition-colors"
-          >
+          <a href="https://github.com/glacierpiece" target="_blank" rel="noopener noreferrer"
+            class="text-accent hover:text-accent/80 underline transition-colors">
             @glacierpiece
           </a>
         </div>
@@ -29,34 +25,25 @@
       <section v-if="!sessionId" class="bg-card rounded-lg border p-6">
         <div class="flex items-center gap-3 mb-6">
         </div>
-        <SteamIdInput 
-          v-model="steamIdInput" 
-          :error="steamIdError"
-          :is-resolving="isResolvingCombined"
-          :steam-profile="steamProfile"
-          @validate="validateSteamId"
-          @reset="resetValidation"
-          @locked="handleSteamLocked"
-          @resolving="handleTimerResolving"
-        />
+        <SteamIdInput v-model="steamIdInput" :error="steamIdError" :is-resolving="isResolvingCombined"
+          :steam-profile="steamProfile" @validate="validateSteamId" @reset="resetValidation" @locked="handleSteamLocked"
+          @resolving="handleTimerResolving" />
       </section>
 
       <!-- Upload Section -->
-  <section v-if="!sessionId && steamIdLocked && !hasLoadedFiles" class="bg-card rounded-lg border p-6 transition-all duration-300 ease-out">
+      <section v-if="!sessionId && steamIdLocked && !hasLoadedFiles"
+        class="bg-card rounded-lg border p-6 transition-all duration-300 ease-out">
         <div class="flex items-center gap-3 mb-6">
           <div class="w-8 h-8 bg-green-500/20 rounded-md flex items-center justify-center">
             <i class="pi pi-folder-open text-green-500"></i>
           </div>
           <h2 class="text-xl font-semibold">Upload Save Folder</h2>
         </div>
-        <SaveFolderUpload
-          :uploading="uploading"
-          @upload="handleFolderUpload"
-        />
+        <SaveFolderUpload :uploading="uploading" @upload="handleFolderUpload" />
       </section>
 
-    <!-- Success Message -->
-  <div v-if="hasLoadedFiles" class="bg-accent/10 border border-accent/20 rounded-lg p-6">
+      <!-- Success Message -->
+      <div v-if="hasLoadedFiles" class="bg-accent/10 border border-accent/20 rounded-lg p-6">
         <div class="flex items-center gap-3">
           <i class="pi pi-check-circle text-accent text-xl"></i>
           <div>
@@ -67,14 +54,9 @@
       </div>
 
       <!-- File Editor Section -->
-      <section 
-  v-if="hasLoadedFiles" 
-        class="bg-card rounded-lg border"
-        @drop.prevent="handleEditorDrop"
-        @dragover.prevent="handleEditorDragOver"
-        @dragleave="handleEditorDragLeave"
-        :class="{ 'ring-2 ring-blue-400 ring-opacity-50': isDragOverEditor }"
-      >
+      <section v-if="hasLoadedFiles" class="bg-card rounded-lg border" @drop.prevent="handleEditorDrop"
+        @dragover.prevent="handleEditorDragOver" @dragleave="handleEditorDragLeave"
+        :class="{ 'ring-2 ring-blue-400 ring-opacity-50': isDragOverEditor }">
         <div class="flex items-center justify-between p-6 border-b">
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 bg-purple-500/20 rounded-md flex items-center justify-center">
@@ -86,36 +68,30 @@
             </span>
           </div>
           <div class="flex items-center gap-2">
-            <button 
-              @click="handleDownload('sav')" 
-              :disabled="downloading || saveFiles.length === 0"
+            <button @click="handleDownload('sav')" :disabled="downloading || saveFiles.length === 0"
               class="inline-flex items-center gap-2 px-4 py-2 bg-accent text-accent-foreground rounded-md hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              title="Download as SAV files"
-            >
+              title="Download as SAV files">
               <i class="pi pi-download" :class="{ 'pi-spin pi-spinner': downloading }"></i>
               {{ downloading ? 'Creating ZIP...' : 'Download SAV' }}
             </button>
-            <button 
-              @click="handleDownload('yaml')" 
-              :disabled="downloading"
+            <button @click="handleDownload('yaml')" :disabled="downloading"
               class="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              title="Download as YAML files"
-            >
+              title="Download as YAML files">
               <i class="pi pi-file-export" :class="{ 'pi-spin pi-spinner': downloading }"></i>
               Download YAML
+            </button>
+            <button @click="clearFiles" 
+              class="inline-flex items-center gap-2 px-4 py-2 bg-destructive text-white rounded-md hover:bg-destructive/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Close editor and unload files">
+              <i class="pi pi-times text-xs"></i>
+              Close
             </button>
           </div>
         </div>
 
         <div class="p-6">
-          <SaveFileEditor
-            :saveFiles="saveFiles"
-            v-model:activeSaveFile="activeSaveFile"
-            @yamlChange="handleYamlChange"
-            @jsonChange="handleJsonChange"
-            @createBackup="createBackup"
-            @revertFile="revertFile"
-          />
+          <SaveFileEditor :saveFiles="saveFiles" v-model:activeSaveFile="activeSaveFile" @yamlChange="handleYamlChange"
+            @jsonChange="handleJsonChange" @createBackup="createBackup" @revertFile="revertFile" @close="clearFiles" />
         </div>
       </section>
 
@@ -126,10 +102,7 @@
             <i class="pi pi-exclamation-triangle"></i>
             <span>{{ error }}</span>
           </div>
-          <button 
-            @click="error = ''" 
-            class="text-destructive/60 hover:text-destructive transition-colors"
-          >
+          <button @click="error = ''" class="text-destructive/60 hover:text-destructive transition-colors">
             <i class="pi pi-times"></i>
           </button>
         </div>
@@ -142,7 +115,7 @@
 import { onMounted, ref, computed } from 'vue'
 import { useSteamId, useSaveFiles } from '../composables'
 import SteamIdInput from '../components/SteamIdInput.vue'
-import SaveFolderUpload from '../components/SaveFolderUpload.vue'  
+import SaveFolderUpload from '../components/SaveFolderUpload.vue'
 import SaveFileEditor from '../components/editors/SaveFileEditor.vue'
 
 // Drag and drop state
@@ -175,6 +148,7 @@ const {
   createBackup,
   revertFile,
   downloadSaveFolder
+  , clearFiles
 } = useSaveFiles()
 
 const hasLoadedFiles = computed(() => saveFiles.value.length > 0)
@@ -223,7 +197,7 @@ function handleEditorDragLeave(_: DragEvent) {
 
 async function handleEditorDrop(event: DragEvent) {
   isDragOverEditor.value = false
-  
+
   const files = event.dataTransfer?.files
   if (files && files.length > 0) {
     try {
@@ -244,6 +218,7 @@ async function handleEditorDrop(event: DragEvent) {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -251,7 +226,7 @@ async function handleEditorDrop(event: DragEvent) {
 }
 
 .container section,
-.container > div {
+.container>div {
   animation: fadeIn 0.4s ease-out;
 }
 </style>

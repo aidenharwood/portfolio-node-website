@@ -122,6 +122,7 @@ interface Emits {
   (e: 'jsonChange', fileName: string, newJsonData: any): void
   (e: 'createBackup', fileName: string): void
   (e: 'revertFile', fileName: string): void
+  (e: 'close'): void
 }
 
 const props = defineProps<Props>()

@@ -504,6 +504,14 @@ export function useSaveFiles() {
     }
   }
 
+  // Clear all loaded files and reset state
+  function clearFiles() {
+    saveFiles.value = []
+    activeSaveFile.value = ''
+    sessionId.value = ''
+    updatePageTitle()
+  }
+
   // Get file icon
   function getFileIcon(fileName: string): string {
     if (fileName === 'profile.sav') {
@@ -546,6 +554,7 @@ export function useSaveFiles() {
     createAllBackups,
     downloadSaveFolder,
     updatePageTitle,
+    clearFiles,
     getFileIcon,
     getFileDisplayName
   }
