@@ -58,7 +58,7 @@ export function useSaveFiles() {
         const processed = await processYamlFile(file)
         
         // Extract character info if it's a character file
-        const characterInfo = extracted_character_info(processed.jsonData, processed.fileType)
+  const characterInfo = extracted_character_info(processed.jsonData)
         
         processedFiles.push({
           name: processed.fileName,
@@ -89,19 +89,43 @@ export function useSaveFiles() {
   }
 
   // Extract character info from YAML data
-  function extracted_character_info(jsonData: any, fileType: FileTypeInfo) {
-    if (!jsonData || fileType.type !== 'character') return undefined
+  // Extract character info from parsed YAML/JSON data
+  // Be permissive about structure: BL4 data often nests under `state`, but
+  // other YAML exports may use different top-level keys. Try several common
+  // patterns and fall back to safe defaults rather than failing outright.
+  function extracted_character_info(jsonData: any) {
+    if (!jsonData || typeof jsonData !== 'object') return undefined
 
     try {
-      // Try different possible structures for character data
-      const characterData = jsonData.character_data || jsonData.player_character || jsonData
-      
-      return {
-        name: characterData.character_name || characterData.name || 'Unknown',
-        level: characterData.level?.toString() || characterData.experience_level?.toString() || '1',
-        className: characterData.character_class || characterData.class || 'Unknown'
+      // Prefer the BL4 `state` object when present, otherwise fall back to
+      // other common container names or the root object itself.
+      const candidate = jsonData.state || jsonData.character_data || jsonData.player_character || jsonData
+
+      // Name may be under several keys depending on exporter/version
+      const name = candidate.char_name || candidate.character_name || candidate.name || candidate.player_name || (candidate.player && candidate.player.name)
+
+      // Class likewise has a few common keys
+      const className = candidate.class || candidate.character_class || candidate.player_class || (candidate.player && candidate.player.class)
+
+      // Level is most commonly stored in state.experience[0].level for BL4
+      let level: any = undefined
+      if (Array.isArray(candidate.experience) && candidate.experience[0]?.level !== undefined) {
+        level = candidate.experience[0].level
+      } else if (candidate.level !== undefined) {
+        level = candidate.level
+      } else if (candidate.experience_level !== undefined) {
+        level = candidate.experience_level
+      } else if (candidate.stats && candidate.stats.level !== undefined) {
+        level = candidate.stats.level
       }
-    } catch {
+
+      return {
+        name: name ? String(name) : 'Unknown',
+        level: level !== undefined ? String(level) : '1',
+        className: className ? String(className) : 'Unknown'
+      }
+    } catch (err) {
+      console.warn('Failed to extract character info:', err)
       return undefined
     }
   }
