@@ -223,12 +223,10 @@ export function useSaveFiles() {
 
   // Handle JSON changes (visual editor)
   function handleJsonChange(fileName: string, newJsonData: any) {
-    console.log(`handleJsonChange called for ${fileName}`)
     const fileIndex = saveFiles.value.findIndex(f => f.name === fileName)
     if (fileIndex !== -1) {
       const file = saveFiles.value[fileIndex]
       file.jsonData = newJsonData
-      console.log(`Updated jsonData for ${fileName}, triggering reactivity`)
       
       // Convert JSON back to YAML for display
       try {

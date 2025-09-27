@@ -11,10 +11,13 @@ export const collectLostCapsulesAction: QuickUnlockAction = {
     const updatedData = deepClone(data ?? {})
     const warnings: string[] = []
 
+    updatedData.stats = updatedData.stats || {}
+    updatedData.stats.openworld = updatedData.stats.openworld || {}
+    updatedData.stats.openworld.collectibles = updatedData.stats.openworld.collectibles || {}
+    updatedData.stats.openworld.collectibles.capsules = updatedData.stats.openworld.collectibles.capsules || {}
+
     for (const region of REGIONS) {
       for (let i = 0; i < region.capsules; i++) {
-        updatedData.stats.openworld.collectibles = updatedData.stats.openworld.collectibles || {}
-        updatedData.stats.openworld.collectibles.capsules = updatedData.stats.openworld.collectibles.capsules || {}
         updatedData.stats.openworld.collectibles.capsules[`capsule_${region.name}_${i + 1}`] = 1
       }
     }

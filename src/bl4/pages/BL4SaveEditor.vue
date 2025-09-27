@@ -32,15 +32,17 @@
         <SteamIdInput 
           v-model="steamIdInput" 
           :error="steamIdError"
-          :is-resolving="isResolving"
+          :is-resolving="isResolvingCombined"
           :steam-profile="steamProfile"
           @validate="validateSteamId"
           @reset="resetValidation"
+          @locked="handleSteamLocked"
+          @resolving="handleTimerResolving"
         />
       </section>
 
       <!-- Upload Section -->
-  <section v-if="!sessionId && steamIdValid && !hasLoadedFiles" class="bg-card rounded-lg border p-6 transition-all duration-300 ease-out">
+  <section v-if="!sessionId && steamIdLocked && !hasLoadedFiles" class="bg-card rounded-lg border p-6 transition-all duration-300 ease-out">
         <div class="flex items-center gap-3 mb-6">
           <div class="w-8 h-8 bg-green-500/20 rounded-md flex items-center justify-center">
             <i class="pi pi-folder-open text-green-500"></i>
@@ -177,10 +179,23 @@ const {
 
 const hasLoadedFiles = computed(() => saveFiles.value.length > 0)
 
+// track whether the Steam ID has been locked (validated and accepted)
+const steamIdLocked = ref(steamIdValid.value)
+
+function handleSteamLocked(locked: boolean) {
+  steamIdLocked.value = locked
+}
+
 // Initialize Steam ID from cookie on mount
 onMounted(() => {
   initializeSteamId()
 })
+
+// Timer-driven resolving state from the input component
+const steamTimerResolving = ref(false)
+function handleTimerResolving(val: boolean) { steamTimerResolving.value = val }
+
+const isResolvingCombined = computed(() => !!isResolving.value || steamTimerResolving.value)
 
 // Handle folder upload from child component
 async function handleFolderUpload(files: FileList) {

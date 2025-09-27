@@ -11,10 +11,13 @@ export const collectAugerShrinesAction: QuickUnlockAction = {
     const updatedData = deepClone(data ?? {})
     const warnings: string[] = []
 
+    updatedData.stats = updatedData.stats || {}
+    updatedData.stats.openworld = updatedData.stats.openworld || {}
+    updatedData.stats.openworld.collectibles = updatedData.stats.openworld.collectibles || {}
+    updatedData.stats.openworld.collectibles.shrines = updatedData.stats.openworld.collectibles.shrines || {}
+
     for (const region of REGIONS) {
       for (let i = 0; i < region.shrines; i++) {
-        updatedData.stats.openworld.collectibles = updatedData.stats.openworld.collectibles || {}
-        updatedData.stats.openworld.collectibles.shrines = updatedData.stats.openworld.collectibles.shrines || {}
         updatedData.stats.openworld.collectibles.shrines[`shrine_${region.name}_${i + 1}`] = 1
       }
     }

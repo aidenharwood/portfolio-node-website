@@ -37,10 +37,6 @@ export function useSteamId() {
   const isResolving = ref(false)
   const gameProfile = ref<SteamProfile | EpicProfile | null>(null)
 
-
-
-
-
   // Resolve Steam input to Steam ID and profile using our own API
   async function resolveSteamInput(input: string): Promise<{ platformId: string; platform: GamePlatform; steamId?: string; profile?: SteamProfile } | null> {
     try {
@@ -71,7 +67,7 @@ export function useSteamId() {
         return null
       }
     } catch (error) {
-      console.error('Error resolving Steam input:', error)
+      console.error('Error resolving profile ID input:', error)
       return null
     } finally {
       isResolving.value = false
@@ -292,7 +288,7 @@ export function useSteamId() {
       }
     } else {
       // For Steam, resolve via API
-      profileError.value = 'Resolving Steam profile...'
+      profileError.value = 'Resolving profile ID...'
       
       const result = await resolveSteamInput(profileIdInput.value)
       

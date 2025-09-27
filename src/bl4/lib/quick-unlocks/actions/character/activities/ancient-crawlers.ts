@@ -12,9 +12,13 @@ export const completeAncientCrawlersAction: QuickUnlockAction = {
     const updatedData = deepClone(data ?? {})
     const warnings: string[] = []
 
+    updatedData.stats = updatedData.stats || {}
+    updatedData.stats.openworld = updatedData.stats.openworld || {}
+    updatedData.stats.openworld.activities = updatedData.stats.openworld.activities || {}
+    updatedData.stats.openworld.activities.crawlers = updatedData.stats.openworld.activities.crawlers || {}
+
     REGIONS.forEach((region: Region) => {      
       for (let i = 0; i < region.crawlers; i++) {
-        updatedData.stats.openworld.activities.crawlers = updatedData.stats.openworld.activities.crawlers || {}
         updatedData.stats.openworld.activities.crawlers[`crawlers_${region.name}`] = updatedData.stats.openworld.activities.crawlers[`crawlers_${region.name}`] || {}
         updatedData.stats.openworld.activities.crawlers[`crawlers_${region.name}`][`crawler_${region.name}_${i + 1}`] = 1
 

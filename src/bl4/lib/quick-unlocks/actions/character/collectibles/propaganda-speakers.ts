@@ -11,10 +11,13 @@ export const collectPropagandaSpeakersAction: QuickUnlockAction = {
     const updatedData = deepClone(data ?? {})
     const warnings: string[] = []
 
+    updatedData.stats = updatedData.stats || {}
+    updatedData.stats.openworld = updatedData.stats.openworld || {}
+    updatedData.stats.openworld.collectibles = updatedData.stats.openworld.collectibles || {}
+    updatedData.stats.openworld.collectibles.propaspeakers = updatedData.stats.openworld.collectibles.propaspeakers || {}
+
     for (const region of REGIONS) {
       for (let i = 0; i < region.propaspeakers; i++) {
-        updatedData.stats.openworld.collectibles = updatedData.stats.openworld.collectibles || {}
-        updatedData.stats.openworld.collectibles.propaspeakers = updatedData.stats.openworld.collectibles.propaspeakers || {}
         updatedData.stats.openworld.collectibles.propaspeakers[`propaspeakers_${region.name}_${i + 1}`] = 1
       }
     }

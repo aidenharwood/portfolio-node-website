@@ -8,6 +8,7 @@
             id="gamePlatformId"
             v-model="localValue"
             @input="handleInput"
+            @paste="handlePaste"
             @keyup.enter="validateInput"
             type="text"
             placeholder="Enter Steam ID/URL or Epic Account ID (e.g., 76561198123456789, fb0d983582f74e7cb4602d9611466e11)"
@@ -29,7 +30,7 @@
         
         <div v-if="isResolving" class="resolving-message">
           <i class="pi pi-spin pi-spinner"></i>
-          Resolving Steam profile...
+          Resolving profile ID...
         </div>
           
         <div v-else-if="error" class="error-message">
@@ -93,76 +94,43 @@
       </div>
     </div>
   </div>
-</template><script setup lang="ts">
-import { computed } from 'vue'
+</template>
+<script setup lang="ts">
+import { computed, ref, watch, onBeforeUnmount } from 'vue'
 import type { GamePlatform } from '../composables/useSteamId'
 
-interface SteamProfile {
-  personaName?: string
-  profileUrl?: string
-  avatarUrl?: string
-  summary?: string
-}
-
-interface EpicProfile {
-  displayName: string
-  epicAccountId?: string
-  profileUrl?: string
-}
-
+interface SteamProfile { personaName?: string; profileUrl?: string; avatarUrl?: string; summary?: string }
+interface EpicProfile { displayName: string; epicAccountId?: string; profileUrl?: string }
 type GameProfile = SteamProfile | EpicProfile
 
-interface Props {
-  modelValue: string
-  error?: string
-  isResolving?: boolean
-  steamProfile?: GameProfile | null
-}
-
-interface Emits {
-  (e: 'update:modelValue', value: string): void
-  (e: 'validate'): void
-  (e: 'reset'): void
-}
+interface Props { modelValue: string; error?: string; isResolving?: boolean; steamProfile?: GameProfile | null }
+interface Emits { (e: 'update:modelValue', value: string): void; (e: 'validate'): void; (e: 'reset'): void; (e: 'locked', locked: boolean): void; (e: 'resolving', resolving: boolean): void }
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-const localValue = computed({
-  get: () => props.modelValue,
-  set: (value: string) => emit('update:modelValue', value)
+const localValue = computed({ get: () => props.modelValue, set: (v: string) => emit('update:modelValue', v) })
+
+const isValidated = computed(() => {
+  const steamIdPattern = /^7656119\d{10}$/
+  const epicIdPattern = /^[a-f0-9]{32}$/
+  const input = (props.modelValue || '').trim().toLowerCase()
+  const patternMatch = steamIdPattern.test(props.modelValue || '') || epicIdPattern.test(input)
+  const noError = !props.error
+  const hasProfile = !!props.steamProfile
+  return patternMatch && noError && hasProfile
 })
 
-// Platform detection logic
 const detectedPlatform = computed((): GamePlatform => {
-  const input = props.modelValue.trim().toLowerCase()
-  
-  // Check for Epic Games Account ID pattern (32-character hexadecimal)
-  if (/^[a-f0-9]{32}$/.test(input)) {
-    return 'epic'
-  }
-  
-  // Check for Steam patterns
-  if (/^7656119\d{10}$/.test(input) || 
-      /steamcommunity\.com/.test(input) ||
-      // Any other pattern defaults to Steam
-      input.length > 0) {
-    return 'steam'
-  }
-  
-  // Default to Steam
+  const input = (props.modelValue || '').trim().toLowerCase()
+  if (/^[a-f0-9]{32}$/.test(input)) return 'epic'
+  if (/^7656119\d{10}$/.test(input) || /steamcommunity\.com/.test(input) || input.length > 0) return 'steam'
   return 'steam'
 })
 
-const platformIcon = computed(() => {
-  return detectedPlatform.value === 'epic' ? 'pi pi-shopping-cart' : 'pi pi-users'
-})
+const platformIcon = computed(() => detectedPlatform.value === 'epic' ? 'pi pi-shopping-cart' : 'pi pi-users')
+const platformLabel = computed(() => detectedPlatform.value === 'epic' ? 'Epic Games' : 'Steam')
 
-const platformLabel = computed(() => {
-  return detectedPlatform.value === 'epic' ? 'Epic Games' : 'Steam'
-})
-
-// Profile helper functions
 const profileName = computed(() => {
   if (!props.steamProfile) return null
   if ('personaName' in props.steamProfile) return props.steamProfile.personaName
@@ -170,57 +138,105 @@ const profileName = computed(() => {
   return null
 })
 
-const profileAvatar = computed(() => {
-  if (!props.steamProfile) return null
-  if ('avatarUrl' in props.steamProfile) return props.steamProfile.avatarUrl
-  return null
-})
+const profileAvatar = computed(() => props.steamProfile && 'avatarUrl' in props.steamProfile ? props.steamProfile.avatarUrl : null)
+const profileSummary = computed(() => props.steamProfile && 'summary' in props.steamProfile ? (props.steamProfile as any).summary : null)
+const profileUrl = computed(() => props.steamProfile ? (props.steamProfile as any).profileUrl || null : null)
 
-const profileSummary = computed(() => {
-  if (!props.steamProfile) return null
-  if ('summary' in props.steamProfile) return props.steamProfile.summary
-  return null
-})
+const hasSavedValue = computed(() => document.cookie.split(';').some(c => c.trim().startsWith('bl4_steam_id=')))
 
-const profileUrl = computed(() => {
-  if (!props.steamProfile) return null
-  return props.steamProfile.profileUrl || null
-})
+// helpers to persist the Steam ID in a cookie
+function setSavedSteamId(value: string) {
+  try {
+    // 30 days
+    const maxAge = 30 * 24 * 60 * 60
+    document.cookie = `bl4_steam_id=${encodeURIComponent(value || '')}; path=/; max-age=${maxAge}`
+  } catch (_) {}
+}
 
-// State for controlling display mode
-const isValidated = computed(() => {
-  const steamIdPattern = /^7656119\d{10}$/
-  const epicIdPattern = /^[a-f0-9]{32}$/
-  const input = props.modelValue.trim().toLowerCase()
-  
-  const patternMatch = steamIdPattern.test(props.modelValue) || epicIdPattern.test(input)
-  const noError = !props.error
-  const hasProfile = !!props.steamProfile
-  
-  return patternMatch && noError && hasProfile
-})
+function deleteSavedSteamId() {
+  try {
+    // expire immediately
+    document.cookie = 'bl4_steam_id=; path=/; max-age=0'
+  } catch (_) {}
+}
 
+// Lock timers and state
+let countdownTimer: ReturnType<typeof setTimeout> | null = null
+let intervalTimer: ReturnType<typeof setInterval> | null = null
+const countdown = ref(0)
+const isLocking = ref(false)
+const isLocked = ref(false)
+const pasteImmediate = ref(false)
 
-
-const hasSavedValue = computed(() => {
-  // Check if there's a saved Steam ID in cookies
-  const cookies = document.cookie.split(';')
-  return cookies.some(cookie => cookie.trim().startsWith('bl4_steam_id='))
-})
+function startLockCountdown() {
+  if (isLocked.value) return
+  if (countdownTimer) { clearTimeout(countdownTimer); countdownTimer = null }
+  if (intervalTimer) { clearInterval(intervalTimer); intervalTimer = null }
+  countdown.value = 3
+  isLocking.value = true
+  emit('resolving', true)
+  intervalTimer = setInterval(() => { countdown.value = Math.max(0, countdown.value - 1) }, 1000)
+  countdownTimer = setTimeout(() => {
+    if (intervalTimer) { clearInterval(intervalTimer); intervalTimer = null }
+    isLocking.value = false
+    try { setSavedSteamId(props.modelValue || '') } catch {}
+    emit('resolving', false)
+    validateInput()
+    countdownTimer = null
+  }, 3000)
+}
 
 function handleInput() {
-  // Clear validation state when typing, don't auto-validate
-  // This allows users to type without constant validation
+  // v-model already writes to state via computed setter
+  // If the input was just pasted and handled immediately, skip starting the countdown
+  if (pasteImmediate.value) return
+  if (!props.modelValue || !props.modelValue.trim()) {
+    if (countdownTimer) { clearTimeout(countdownTimer); countdownTimer = null }
+    if (intervalTimer) { clearInterval(intervalTimer); intervalTimer = null }
+    countdown.value = 0
+    isLocking.value = false
+    emit('resolving', false)
+    if (isLocked.value) { isLocked.value = false; emit('locked', false) }
+  try { deleteSavedSteamId() } catch {}
+    return
+  }
+  try { setSavedSteamId(props.modelValue || '') } catch {}
+  startLockCountdown()
 }
 
-function validateInput() {
-  emit('validate')
+function handlePaste(e: ClipboardEvent) {
+  const text = e.clipboardData?.getData('text') || ''
+  if (!text) return
+  // Cancel any running countdown/timers to avoid double-validation
+  if (countdownTimer) { clearTimeout(countdownTimer); countdownTimer = null }
+  if (intervalTimer) { clearInterval(intervalTimer); intervalTimer = null }
+  isLocking.value = false
+  pasteImmediate.value = true
+  emit('resolving', false)
+  emit('update:modelValue', text.trim())
+  // Immediately attempt validation on paste (no 3s lock countdown)
+  validateInput()
+  // Clear the pasteImmediate flag after a short interval to allow normal typing behavior
+  setTimeout(() => { pasteImmediate.value = false }, 500)
 }
 
-function changeProfile() {
-  // Switch back to input mode and clear any validation state
-  emit('reset')
-}
+function validateInput() { emit('validate') }
+
+// reflect parent's validation into locked state
+watch(() => isValidated.value, (val) => {
+  if (val) {
+    if (!isLocked.value) { isLocked.value = true; emit('locked', true) }
+  } else {
+    if (isLocked.value) { isLocked.value = false; emit('locked', false) }
+  }
+})
+
+onBeforeUnmount(() => {
+  if (countdownTimer) clearTimeout(countdownTimer)
+  if (intervalTimer) clearInterval(intervalTimer)
+})
+
+function changeProfile() { emit('reset') }
 </script>
 
 <style scoped>

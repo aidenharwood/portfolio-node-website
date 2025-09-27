@@ -16,6 +16,10 @@ export const completeAllVaultsAction: QuickUnlockAction = {
     const updatedData = deepClone(data ?? {})
     const warnings: string[] = []
 
+    updatedData.stats = updatedData.stats || {}
+    updatedData.stats.openworld = updatedData.stats.openworld || {}
+    updatedData.stats.openworld.activities = updatedData.stats.openworld.activities || {}
+
     updatedData.stats.openworld.collectibles = updatedData.stats.openworld.collectibles || {}
     updatedData.stats.openworld.collectibles.vaultdoor = updatedData.stats.openworld.collectibles.vaultdoor || {}
     updatedData.stats.openworld.collectibles.vaultlock = updatedData.stats.openworld.collectibles.vaultlock || {}

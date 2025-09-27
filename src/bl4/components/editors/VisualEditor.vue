@@ -14,8 +14,8 @@
               :class="{ 'quick-action-animate': quickActionStates['unlock-everything'] }"
               @click="handleUnlockEverything"
             >
-              <i class="pi pi-unlock text-base"></i>
-              <span>Unlock everything</span>
+              <i class="pi pi-unlock"></i>
+              <span>UNLOCK EVERYTHING</span>
             </button>
           </div>
         </div>
@@ -123,7 +123,7 @@
         </div>
       </div>
 
-      <div v-if="uncategorizedList.length" class="space-y-4">
+      <!-- <div v-if="uncategorizedList.length" class="space-y-4">
         <div class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Uncategorized
         </div>
@@ -137,7 +137,7 @@
           @fieldUpdate="handleFieldUpdate"
           @sectionAction="handleSectionAction"
         />
-      </div>
+      </div> -->
     </div>
   </div>
 </template>
@@ -512,10 +512,10 @@ const handleAddItemToContainer = (containerId: string) => {
     (section) => section.id.startsWith(`${containerId}_slot_`) || section.id === `${containerId}_add_item`
   )
 
-  if (sections.length === 0) {
-    console.warn(`No sections found for container: ${containerId}`)
-    return
-  }
+  // if (sections.length === 0) {
+  //   console.warn(`No sections found for container: ${containerId}`)
+  //   return
+  // }
 
   const baseSection = SectionRegistry.getSection(containerId)
 

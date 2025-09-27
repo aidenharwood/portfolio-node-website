@@ -11,10 +11,14 @@ export const completeAugerMinesAction: QuickUnlockAction = {
   run(data: any) {
     const updatedData = deepClone(data ?? {})
     const warnings: string[] = []
+
+    updatedData.stats = updatedData.stats || {}
+    updatedData.stats.openworld = updatedData.stats.openworld || {}
+    updatedData.stats.openworld.activities = updatedData.stats.openworld.activities || {}
+    updatedData.stats.openworld.activities.bounties_augur = updatedData.stats.openworld.activities.bounties_augur || {}
     
     REGIONS.forEach((region: Region) => {
       for (let i = 0; i < region.augurBounties; i++) {
-        updatedData.stats.openworld.activities.bounties_augur = updatedData.stats.openworld.activities.bounties_augur || {}
         updatedData.stats.openworld.activities.bounties_augur[`augurbounty_${region.name}_${i + 1}`] = 1
 
         updatedData.missions.local_sets.missionset_zoneactivity_mine = updatedData.missions.local_sets.missionset_zoneactivity_mine || { missions: {} }

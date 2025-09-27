@@ -11,10 +11,13 @@ export const collectSurvivalistCachesAction: QuickUnlockAction = {
     const updatedData = deepClone(data ?? {})
     const warnings: string[] = []
 
+    updatedData.stats = updatedData.stats || {}
+    updatedData.stats.openworld = updatedData.stats.openworld || {}
+    updatedData.stats.openworld.collectibles = updatedData.stats.openworld.collectibles || {}
+    updatedData.stats.openworld.collectibles.caches = updatedData.stats.openworld.collectibles.caches || {}
+
     for (const region of REGIONS) {
       for (let i = 0; i < region.caches; i++) {
-        updatedData.stats.openworld.collectibles = updatedData.stats.openworld.collectibles || {}
-        updatedData.stats.openworld.collectibles.caches = updatedData.stats.openworld.collectibles.caches || {}
         updatedData.stats.openworld.collectibles.caches[`cache_${region.name}_${i + 1}`] = 1
       }
     }
