@@ -9,7 +9,6 @@ import { unlockAllHoverdrivesAction } from './actions/character/progression/hove
 import { unlockAllSafehousesAction } from './actions/character/exploration/safehouses'
 import { revealMapAction } from './actions/character/exploration/reveal-map'
 import { unlockMapLocationsAction } from './actions/character/exploration/map-locations'
-import { unlockAllCosmeticsAction } from './actions/character/progression/cosmetics'
 import { completeAllMissionsAction } from './actions/character/progression/missions'
 import { completeAncientCrawlersAction } from './actions/character/activities/ancient-crawlers'
 import { completeAugerMinesAction } from './actions/character/activities/auger-mines'
@@ -27,21 +26,27 @@ import { collectPropagandaSpeakersAction } from './actions/character/collectible
 import { collectSurvivalistCachesAction } from './actions/character/collectibles/survivalist-cache'
 import { collectVaultSymbolsAction } from './actions/character/collectibles/vault-symbols'
 import { completeOrderSilosAction } from './actions/character/activities/order-silos'
+import { unlockAllCosmeticsAction } from './actions/profile/cosmetics/cosmetics'
+import { unlockAllShiniesAction } from './actions/profile/cosmetics/shinies'
+import { unlockAllRewardPacksAction } from './actions/character/cosmetics/rewards'
 
 const QUICK_UNLOCK_ACTIONS: ReadonlyArray<QuickUnlockAction> = Object.freeze([
+  // Character progression
   unlockAllSdusAction,
   unlockAllHoverdrivesAction,
+  completeAllMissionsAction,
+  // Character exploration
   revealMapAction,
   unlockAllSafehousesAction,
   unlockMapLocationsAction,
-  unlockAllCosmeticsAction,
-  completeAllMissionsAction,
+  // Character activities
   completeAncientCrawlersAction,
   completeAugerMinesAction,
   completeOrderBunkersAction,
   completeRipperDrillSitesAction,
   completeAllVaultsAction,
   completeOrderSilosAction,
+  // Character collectibles
   collectAugerShrinesAction,
   collectEchoLogsAction,
   collectElectiSafesAction,
@@ -49,7 +54,11 @@ const QUICK_UNLOCK_ACTIONS: ReadonlyArray<QuickUnlockAction> = Object.freeze([
   collectLostCapsulesAction,
   collectPropagandaSpeakersAction,
   collectSurvivalistCachesAction,
-  collectVaultSymbolsAction
+  collectVaultSymbolsAction,
+  // Profile cosmetics
+  unlockAllCosmeticsAction,
+  unlockAllShiniesAction,
+  unlockAllRewardPacksAction,
 ])
 
 // Map of id -> action

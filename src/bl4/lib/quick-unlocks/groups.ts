@@ -16,8 +16,6 @@ export const CHARACTER_QUICK_UNLOCK_GROUPS: QuickUnlockGroup[] = [
         actionIds: [
             'unlock-all-sdus',
             'unlock-all-hoverdrives',
-            // 'complete-all-missions',
-            // 'unlock-all-cosmetics',
         ]
     },
     {
@@ -57,16 +55,34 @@ export const CHARACTER_QUICK_UNLOCK_GROUPS: QuickUnlockGroup[] = [
             'unlock-map-locations',
             'unlock-safehouses',
         ]
-    }
+    },
+    {
+        id: 'cosmetics',
+        label: 'Cosmetics',
+        icon: 'pi pi-star',
+        actionIds: [
+            'unlock-reward-packs',
+        ]
+    },
 ]
 
 
 export const PROFILE_QUICK_UNLOCK_GROUPS: QuickUnlockGroup[] = [
+    // {
+    //     id: 'placeholder',
+    //     label: 'Placeholder',
+    //     icon: 'pi pi-star',
+    //     actionIds: [
+    //         // Placeholder
+    //     ]
+    // }
     {
-        id: 'placeholder',
-        label: 'Placeholder',
+        id: 'cosmetics',
+        label: 'Cosmetics',
         icon: 'pi pi-star',
         actionIds: [
+            'unlock-shinies',
+            'unlock-cosmetics',
         ]
     },
 ]
