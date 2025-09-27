@@ -258,7 +258,7 @@ export function useSteamId() {
   // Computed properties
   const platformValidation = computed(() => extractGamePlatformId(profileIdInput.value))
   const steamIdValidation = computed(() => extractSteamId(profileIdInput.value)) // Keep for compatibility
-  const steamId = computed(() => steamIdValidation.value.steamId)
+  const steamId = computed(() => platformValidation.value.isValid ? platformValidation.value.platformId : '')
   const profileIdValid = computed(() => platformValidation.value.isValid)
   const platformType = computed(() => platformValidation.value.platform)
 

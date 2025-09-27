@@ -11,8 +11,8 @@ export class BackpackInventorySection extends BaseInventorySection {
   readonly id = 'backpack'
   readonly title = 'Backpack Inventory'
   readonly description = 'Items stored in your backpack'
-  readonly icon = 'pi pi-shopping-bag'
-  readonly maxItems = 50
+  readonly icon = 'pi pi-briefcase'
+  readonly maxItems = 500
 
   getContainerPath(): string[] {
     return ['state', 'inventory', 'items', 'backpack']

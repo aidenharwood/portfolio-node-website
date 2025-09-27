@@ -19,7 +19,6 @@ import { completeAllVaultsAction } from './actions/character/activities/vaults'
 
 import { CHARACTER_QUICK_UNLOCK_GROUPS, PROFILE_QUICK_UNLOCK_GROUPS, type QuickUnlockGroup } from './groups'
 import { collectAugerShrinesAction } from './actions/character/collectibles/auger-shrines'
-import { collectDeadboltsAction } from './actions/character/collectibles/deadbolts'
 import { collectEchoLogsAction } from './actions/character/collectibles/echo-logs'
 import { collectElectiSafesAction } from './actions/character/collectibles/electi-safe'
 import { collectEvocariumsAction } from './actions/character/collectibles/evocarium'
@@ -44,7 +43,6 @@ const QUICK_UNLOCK_ACTIONS: ReadonlyArray<QuickUnlockAction> = Object.freeze([
   completeAllVaultsAction,
   completeOrderSilosAction,
   collectAugerShrinesAction,
-  collectDeadboltsAction,
   collectEchoLogsAction,
   collectElectiSafesAction,
   collectEvocariumsAction,

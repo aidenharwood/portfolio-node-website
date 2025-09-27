@@ -83,18 +83,18 @@ export function getYAMLBasedConfig(saveData: BL4CharacterSave | BL4ProfileSave) 
 
     const PROFILE_TABS: TabConfig[] = [
       {
+        id: 'bank-storage',
+        title: 'Bank Storage',
+        icon: 'pi pi-wallet',
+        sectionId: 'bankStorage'
+      },
+      {
         id: 'input-preferences',
         title: 'Input Preferences', 
-        icon: '⌨️',
+        icon: 'pi pi-cog',
         sectionId: 'inputPreferences',
         validation: (data: unknown) => isProfileSave(data)
       },
-      {
-        id: 'bank-storage',
-        title: 'Bank Storage',
-        icon: '🏦',
-        sectionId: 'bankStorage'
-      }
     ]
     
     return { 

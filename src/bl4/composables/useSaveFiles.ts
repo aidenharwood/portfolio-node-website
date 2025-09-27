@@ -28,6 +28,27 @@ export function useSaveFiles() {
 
   const API_BASE = import.meta.env.VITE_API_BASE || `${window.location.origin}`
 
+  // Helper function to check if a file contains binary data
+  async function checkIfBinaryFile(file: File): Promise<boolean> {
+    return new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const buffer = e.target?.result as ArrayBuffer
+        const bytes = new Uint8Array(buffer)
+        
+        // Check for null bytes - definitive indicator of binary data
+        // YAML files should never contain null bytes
+        const hasNullBytes = bytes.some(byte => byte === 0)
+        
+        resolve(hasNullBytes)
+      }
+      reader.onerror = () => resolve(false) // Default to text if can't read
+      
+      // Read first 1KB to check for binary content
+      reader.readAsArrayBuffer(file.slice(0, 1024))
+    })
+  }
+
   // Process YAML files directly (client-side)
   async function processYamlFiles(yamlFiles: File[]): Promise<void> {
     const processedFiles: SaveFile[] = []
@@ -96,17 +117,20 @@ export function useSaveFiles() {
     saveFiles.value = []
 
     try {
-      // Check for YAML files first - handle them directly
+      // Separate files by actual content type, not just extension
       const yamlFiles: File[] = []
       const savFiles: File[] = []
       
       for (let i = 0; i < files.length; i++) {
         const file = files[i]
-        const fileName = file.name.toLowerCase()
-        if (fileName.endsWith('.yaml') || fileName.endsWith('.yml')) {
-          yamlFiles.push(file)
-        } else if (fileName.endsWith('.sav')) {
+        
+        // Check file content to determine if it's binary (SAV) or text (YAML)
+        const isBinary = await checkIfBinaryFile(file)
+        
+        if (isBinary) {
           savFiles.push(file)
+        } else {
+          yamlFiles.push(file)
         }
       }
 
@@ -120,9 +144,11 @@ export function useSaveFiles() {
       const formData = new FormData()
       formData.append('steamId', steamId)
 
-      // Add all .sav files to the form data
+      // Add all binary files to the form data with .sav extension
       savFiles.forEach(file => {
-        formData.append('saveFiles', file, file.name)
+        // Ensure the file has a .sav extension for the backend validation
+        const savFileName = file.name.replace(/\.[^.]+$/, '') + '.sav'
+        formData.append('saveFiles', file, savFileName)
       })
 
       const response = await fetch(`${API_BASE}/api/bl4/upload-folder`, {
@@ -211,11 +237,19 @@ export function useSaveFiles() {
           lineWidth: -1,
           noRefs: true,
           sortKeys: false,
-          schema: yaml.DEFAULT_SCHEMA,
+          schema: yaml.DEFAULT_SCHEMA, // Use DEFAULT_SCHEMA for consistency with backend BL4_SCHEMA
           skipInvalid: true, // Skip invalid values instead of failing
           flowLevel: -1,
           styles: {
             '!!null': 'canonical' // Handle null values properly
+          },
+          // Ensure we preserve all data types correctly
+          replacer: (_key, value) => {
+            // Handle special cases for BL4 data
+            if (typeof value === 'number' && !isFinite(value)) {
+              return null // Replace NaN/Infinity with null
+            }
+            return value
           }
         })
         file.yamlContent = yamlContent
@@ -350,34 +384,104 @@ export function useSaveFiles() {
 
   // Download as SAV files (API conversion)
   async function downloadAsSav(steamId: string): Promise<void> {
-    if (!sessionId.value) {
-      throw new Error('No session available. Please upload SAV files first.')
-    }
+    // Check if we have a session (from SAV file uploads)
+    if (sessionId.value) {
+      // Use existing folder download endpoint for SAV uploads
+      const allFiles = saveFiles.value.map(file => ({
+        name: file.name,
+        jsonData: file.jsonData,        // Send JSON data for processing
+        yamlContent: file.yamlContent   // Keep YAML as fallback
+      }))
 
-    const allFiles = saveFiles.value.map(file => ({
-      name: file.name,
-      jsonData: file.jsonData,        // Send JSON data for processing
-      yamlContent: file.yamlContent   // Keep YAML as fallback
-    }))
-
-    const response = await fetch(`${API_BASE}/api/bl4/download-folder/${sessionId.value}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ 
-        steamId,
-        modifiedFiles: allFiles
+      const response = await fetch(`${API_BASE}/api/bl4/download-folder/${sessionId.value}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          steamId,
+          modifiedFiles: allFiles
+        })
       })
-    })
 
-    if (!response.ok) {
-      const data = await response.json()
-      throw new Error(data.error || 'Download failed')
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Download failed')
+      }
+
+      const blob = await response.blob()
+      downloadBlob(blob, 'bl4-saves-sav.zip')
+    } else {
+      // Handle YAML files - download individually if single file, or as ZIP if multiple
+      // Handle YAML files - always package converted SAV(s) into a ZIP
+      // (single-file case: produce a zip with one .sav entry)
+      if (saveFiles.value.length === 1) {
+        const JSZip = (await import('jszip')).default
+        const zip = new JSZip()
+
+        const file = saveFiles.value[0]
+        const response = await fetch(`${API_BASE}/api/bl4/convert-yaml-to-sav?zip=true`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            yamlContent: file.yamlContent,
+            steamId
+          })
+        })
+
+        if (!response.ok) {
+          const data = await response.json()
+          throw new Error(data.error || `Failed to convert ${file.name}`)
+        }
+
+        const savArrayBuffer = await response.arrayBuffer()
+        const baseName = file.name.replace(/\.[^.]+$/, '')
+        const savFileName = `${baseName}.sav`
+        zip.file(savFileName, savArrayBuffer)
+
+        const zipBlob = await zip.generateAsync({ type: 'blob' })
+        downloadBlob(zipBlob, 'bl4-saves-sav.zip')
+      } else {
+        // Download multiple files as ZIP
+        const JSZip = (await import('jszip')).default
+        const zip = new JSZip()
+
+        for (const file of saveFiles.value) {
+          try {
+            const response = await fetch(`${API_BASE}/api/bl4/convert-yaml-to-sav?zip=true`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                yamlContent: file.yamlContent,
+                steamId
+              })
+            })
+
+            if (!response.ok) {
+              const data = await response.json()
+              throw new Error(data.error || `Failed to convert ${file.name}`)
+            }
+
+            const savBlob = await response.blob()
+            const savArrayBuffer = await savBlob.arrayBuffer()
+            // Ensure the filename has .sav extension, regardless of original extension
+            const baseName = file.name.replace(/\.[^.]+$/, '') // Remove any extension
+            const savFileName = `${baseName}.sav`
+            zip.file(savFileName, savArrayBuffer)
+          } catch (error) {
+            console.error(`Failed to convert ${file.name}:`, error)
+            throw new Error(`Failed to convert ${file.name}: ${(error as Error).message}`)
+          }
+        }
+
+        const zipBlob = await zip.generateAsync({ type: 'blob' })
+        downloadBlob(zipBlob, 'bl4-saves-sav.zip')
+      }
     }
-
-    const blob = await response.blob()
-    downloadBlob(blob, 'bl4-saves-sav.zip')
   }
 
   // Helper function to download a blob

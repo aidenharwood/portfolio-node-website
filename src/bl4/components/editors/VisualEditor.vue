@@ -19,10 +19,15 @@
                 v-for="action in group.actions"
                 :key="action.id"
                 type="button"
-                class="inline-flex items-center gap-2 rounded-md border border-border/60 bg-muted/60 px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-muted hover:text-foreground transition"
+                class="inline-flex items-center gap-2 rounded-md border border-border/60 bg-muted/60 px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-muted hover:text-foreground transition duration-300"
+                :class="{ 'quick-action-animate': quickActionStates[action.id] }"
                 @click="handleQuickUnlockAction(action.id)"
               >
-                <i v-if="action.icon" :class="action.icon" class="text-sm" />
+                <!-- Icon container keeps a fixed size so swapping icons doesn't change layout -->
+                <span class="quick-action-icon" aria-hidden="true">
+                  <i v-if="action.icon" :class="action.icon" class="icon-original" />
+                  <i class="pi pi-check icon-check" />
+                </span>
                 <span>{{ action.label }}</span>
               </button>
             </div>
@@ -415,21 +420,28 @@ const saveType = computed(() => props.saveType)
 
 const quickUnlockGroups = computed(() => getQuickUnlockGroups(saveType.value))
 
+// Animation state for quick actions
+const quickActionStates = ref<Record<string, boolean>>({})
+
+function triggerQuickActionAnimation(actionId: string) {
+  quickActionStates.value[actionId] = true
+  setTimeout(() => {
+    quickActionStates.value[actionId] = false
+  }, 700)
+}
+
 const handleQuickUnlockAction = (actionId: string) => {
   const result = runQuickUnlock(actionId, yamlData.value)
-
   if (!result) {
     console.warn(`Unknown quick unlock action: ${actionId}`)
     return
   }
-
   if (Array.isArray(result.warnings) && result.warnings.length) {
     console.warn(`Quick unlock action "${actionId}" reported warnings:`, result.warnings)
   }
-
   const contractedData = contractSaveDataFromItemContainers(result.data)
-
   emit('update:jsonData', contractedData)
+  triggerQuickActionAnimation(actionId)
 }
 
 const handleAddItemToContainer = (containerId: string) => {
@@ -701,6 +713,49 @@ const getTabIcon = (icon?: string) => {
 
 :deep(.editor-field .field-description) {
   color: oklch(var(--muted-foreground));
+}
+
+.quick-action-animate {
+  animation: quickActionPulse 0.7s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 0 0 4px oklch(var(--accent) / 0.25), 0 2px 8px -2px oklch(var(--accent) / 0.5);
+  border-color: oklch(var(--accent));
+  background: linear-gradient(90deg, oklch(var(--accent) / 0.18), oklch(var(--muted) / 0.6));
+  color: oklch(var(--accent-foreground));
+}
+
+.quick-action-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem; /* fixed width to prevent layout shift */
+  height: 1.1rem;
+  position: relative;
+}
+
+.quick-action-icon .icon-original,
+.quick-action-icon .icon-check {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: opacity 220ms cubic-bezier(.4,0,.2,1), transform 220ms cubic-bezier(.4,0,.2,1);
+  opacity: 1;
+}
+
+.quick-action-icon .icon-check {
+  opacity: 0;
+  transform: translate(-50%, -60%) scale(0.85);
+  color: oklch(var(--accent));
+}
+
+.quick-action-animate .quick-action-icon .icon-original {
+  opacity: 0;
+  transform: translate(-50%, -40%) scale(0.85);
+}
+
+.quick-action-animate .quick-action-icon .icon-check {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
 }
 
 @media (max-width: 768px) {

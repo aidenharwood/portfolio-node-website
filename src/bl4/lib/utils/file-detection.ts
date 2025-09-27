@@ -4,6 +4,38 @@
 
 import * as yaml from 'js-yaml'
 
+// Custom YAML schema to handle unknown tags (matching backend BL4_SCHEMA)
+const unknownTagType = new yaml.Type('!', {
+    kind: 'scalar',
+    multi: true,
+    construct: (data: any) => data
+});
+
+const unknownSequenceType = new yaml.Type('!', {
+    kind: 'sequence', 
+    multi: true,
+    construct: (data: any) => data
+});
+
+const unknownMappingType = new yaml.Type('!', {
+    kind: 'mapping',
+    multi: true, 
+    construct: (data: any) => data
+});
+
+// Handle specific BL4 tags like !<!tags>
+const bl4TagsType = new yaml.Type('!<!tags>', {
+    kind: 'mapping',
+    construct: (data: any) => data
+});
+
+const BL4_SCHEMA = yaml.DEFAULT_SCHEMA.extend([
+    unknownTagType,
+    unknownSequenceType,
+    unknownMappingType,
+    bl4TagsType
+]);
+
 export interface FileTypeInfo {
   type: 'character' | 'profile' | 'unknown'
   format: 'sav' | 'yaml'
@@ -15,16 +47,38 @@ export interface FileTypeInfo {
  */
 export function detectFileType(file: File): FileTypeInfo {
   const fileName = file.name.toLowerCase()
-  const isYaml = fileName.endsWith('.yaml') || fileName.endsWith('.yml')
-  const isSav = fileName.endsWith('.sav')
+  const nameIsYaml = fileName.endsWith('.yaml') || fileName.endsWith('.yml')
+  const nameIsSav = fileName.endsWith('.sav')
   
   const result: FileTypeInfo = {
     type: 'unknown',
-    format: isSav ? 'sav' : (isYaml ? 'yaml' : 'yaml'),
+    format: nameIsSav ? 'sav' : (nameIsYaml ? 'yaml' : 'yaml'),
     fileName: file.name
   }
 
-  // Simple filename-based detection - this is all we need
+  // Check file content to determine actual format
+  // If file contains null bytes, it's likely a binary SAV file regardless of extension
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    const buffer = e.target?.result as ArrayBuffer
+    const bytes = new Uint8Array(buffer)
+    
+    // Check for null bytes (binary files)
+    const hasNullBytes = bytes.some(byte => byte === 0)
+    
+    if (hasNullBytes) {
+      // File contains null bytes, treat as SAV regardless of extension
+      result.format = 'sav'
+    } else {
+      // Text file, use extension-based detection
+      result.format = nameIsSav ? 'sav' : 'yaml'
+    }
+  }
+  
+  // Read first 1KB to check for binary content
+  reader.readAsArrayBuffer(file.slice(0, 1024))
+
+  // Simple filename-based type detection - this is all we need
   if (fileName.includes('profile')) {
     result.type = 'profile'
   } else if (/^\d+\.(sav|ya?ml)$/.test(fileName)) {
@@ -54,27 +108,9 @@ export async function processYamlFile(file: File): Promise<{
   const fileType = detectFileType(file)
 
   try {
-    // First, try to preprocess the content to remove problematic tags
-    let processedContent = content
-    
-    // Remove or replace various unknown YAML tags that cause parsing issues
-    // Handle different tag formats that might appear in game files
-    processedContent = processedContent
-      // Handle the specific !<!tags> pattern anywhere in the file
-      .replace(/!<!tags>/g, '# Removed unknown tag')
-      // Handle any other <!...> tags
-      .replace(/!<[^>]*>/g, '# Removed unknown tag')
-      // Handle standard YAML tags like !tag
-      .replace(/![a-zA-Z0-9_.-]+(\s|$)/g, '# Removed unknown tag$1')
-      // Handle tags that appear after colons (like in the error)
-      .replace(/:\s*!<!tags>/g, ': # Removed unknown tag')
-      .replace(/:\s*!<[^>]*>/g, ': # Removed unknown tag')
-      .replace(/:\s*![a-zA-Z0-9_.-]+/g, ': # Removed unknown tag')
-    
-    console.log(`Processing YAML file ${file.name}, original size: ${content.length}, processed size: ${processedContent.length}`)
-    
-    // Parse YAML with default schema
-    const jsonData = yaml.load(processedContent, {
+    // Parse YAML with BL4 schema to handle unknown tags properly
+    const jsonData = yaml.load(content, {
+      schema: BL4_SCHEMA,
       onWarning: function(warning) {
         console.warn('YAML warning:', warning)
       }
@@ -83,7 +119,7 @@ export async function processYamlFile(file: File): Promise<{
     return {
       fileName: file.name,
       originalContent: content,
-      yamlContent: content, // No processing needed
+      yamlContent: content, // Keep original content
       jsonData,
       fileType
     }

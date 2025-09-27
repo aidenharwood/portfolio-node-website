@@ -31,13 +31,6 @@ export class CharacterInfoSection implements SerializableSection {
 
     readonly fields: FieldDefinition[] = [
         {
-            path: 'state.char_guid',
-            name: 'Character GUID',
-            type: 'string',
-            placeholder: '82B65E14472993E66AA1F3A57CEE7538',
-            validation: (value) => typeof value === 'string' && value.length > 0
-        },
-        {
             path: 'state.char_name',
             name: 'Character Name',
             type: 'string',

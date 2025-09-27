@@ -26,7 +26,6 @@ export const CHARACTER_QUICK_UNLOCK_GROUPS: QuickUnlockGroup[] = [
         icon: 'pi pi-trophy',
         actionIds: [
             'collect-auger-shrines',
-            // 'collect-deadbolts',
             'collect-evocariums',
             'collect-lost-capsules',
             'collect-propaganda-speakers',
@@ -41,7 +40,7 @@ export const CHARACTER_QUICK_UNLOCK_GROUPS: QuickUnlockGroup[] = [
         label: 'Activities',
         icon: 'pi pi-bolt',
         actionIds: [
-            // 'complete-vaults',
+            'complete-vaults',
             'complete-ancient-crawlers',
             'complete-auger-mines',
             'complete-order-bunkers',

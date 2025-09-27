@@ -85,7 +85,12 @@ export interface Region {
   echologs_general_mis: number
   echologs_arjay: number
   echologs_vaulthunter: number
-  has_vault: boolean
+  vaultdata?: VaultData
+}
+
+export interface VaultData {
+  mission: string,
+  endStates: string[]
 }
 
 export const REGIONS: Region[] = [
@@ -93,7 +98,7 @@ export const REGIONS: Region[] = [
     name: 'grasslands',
     safehouses: 4,
     silos: 3,
-    crawlers: 3,
+    crawlers: 4,
     augurBounties: 3,
     orderBounties: 3,
     vanguardBounties: 3,
@@ -108,13 +113,16 @@ export const REGIONS: Region[] = [
     echologs_general_mis: 11,
     echologs_arjay: 3,
     echologs_vaulthunter: 10,
-    has_vault: true
+    vaultdata: {
+      mission: 'mission_side_grasslandsvault',
+      endStates: ['lootvaultpower_endstate', 'defeatinceptus_endstate']
+    }
   },
   {
     name: 'mountains',
     safehouses: 4,
     silos: 3,
-    crawlers: 3,
+    crawlers: 4,
     augurBounties: 3,
     orderBounties: 3,
     vanguardBounties: 3,
@@ -125,11 +133,14 @@ export const REGIONS: Region[] = [
     capsules: 6,
     evocariums: 5,
     propaspeakers: 8,
-    echologs_general_gen: 28,
-    echologs_general_mis: 2,
+    echologs_general_gen: 29,
+    echologs_general_mis: 7,
     echologs_arjay: 3,
     echologs_vaulthunter: 10,
-    has_vault: true
+    vaultdata: {
+      mission: 'mission_side_vault_glide',
+      endStates: ['bossfight_endstate']
+    }
   },
   {
     name: 'shatteredlands',
@@ -150,7 +161,10 @@ export const REGIONS: Region[] = [
     echologs_general_mis: 15,
     echologs_arjay: 3,
     echologs_vaulthunter: 10,
-    has_vault: true
+    vaultdata: {
+      mission: 'mission_side_resonatorvault',
+      endStates: ['defeatshatteredlandsvaultguardian_endstate']
+    }
   },
   {
     name: 'city',
@@ -158,7 +172,7 @@ export const REGIONS: Region[] = [
     silos: 0,
     crawlers: 0,
     augurBounties: 0,
-    orderBounties: 0,
+    orderBounties: 1,
     vanguardBounties: 0,
     vaultsymbols: 6,
     caches: 0,
@@ -171,7 +185,6 @@ export const REGIONS: Region[] = [
     echologs_general_mis: 15,
     echologs_arjay: 3,
     echologs_vaulthunter: 9,
-    has_vault: true
   },
   {
     name: 'uppercity',
@@ -192,7 +205,6 @@ export const REGIONS: Region[] = [
     echologs_general_mis: 0,
     echologs_arjay: 0,
     echologs_vaulthunter: 0,
-    has_vault: true
   },
   {
     name: 'elpis',
@@ -213,7 +225,6 @@ export const REGIONS: Region[] = [
     echologs_general_mis: 0,
     echologs_arjay: 0,
     echologs_vaulthunter: 0,
-    has_vault: true
   }
 ]
 

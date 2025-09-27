@@ -86,7 +86,7 @@
           <div class="flex items-center gap-2">
             <button 
               @click="handleDownload('sav')" 
-              :disabled="downloading || (!sessionId && saveFiles.some(f => !f.fileType || f.fileType.format === 'sav'))"
+              :disabled="downloading || saveFiles.length === 0"
               class="inline-flex items-center gap-2 px-4 py-2 bg-accent text-accent-foreground rounded-md hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               title="Download as SAV files"
             >

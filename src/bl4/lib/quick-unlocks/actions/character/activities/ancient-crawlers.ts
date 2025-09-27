@@ -18,7 +18,7 @@ export const completeAncientCrawlersAction: QuickUnlockAction = {
         updatedData.stats.openworld.activities.crawlers[`crawlers_${region.name}`] = updatedData.stats.openworld.activities.crawlers[`crawlers_${region.name}`] || {}
         updatedData.stats.openworld.activities.crawlers[`crawlers_${region.name}`][`crawler_${region.name}_${i + 1}`] = 1
 
-        updatedData.missions.local_sets.missionset_zoneactivity_crawler = updatedData.missions.local_sets.missionset_zoneactivity_crawler.missions || { missions: {} }
+        updatedData.missions.local_sets.missionset_zoneactivity_crawler = updatedData.missions.local_sets.missionset_zoneactivity_crawler || { missions: {} }
         updatedData.missions.local_sets.missionset_zoneactivity_crawler.missions[`zoneactivity_${region.name}_crawler${i + 1}`] = {
           status: "completed"
         }

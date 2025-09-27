@@ -22,26 +22,30 @@ export const collectEchoLogsAction: QuickUnlockAction = {
     // General logs
       for (const region of REGIONS) {
         for (let i = 0; i < region.echologs_general_gen; i++) {
+          const paddedIndex = (i + 1).toString().padStart(2, '0')
           updatedData.stats.openworld.collectibles.echologs_general = updatedData.stats.openworld.collectibles.echologs_general || {}
           updatedData.stats.openworld.collectibles.echologs_general[`el_g_${region.name}`] = updatedData.stats.openworld.collectibles.echologs_general[`el_g_${region.name}`] || {}
-          updatedData.stats.openworld.collectibles.echologs_general[`el_g_${region.name}`][`${REGION_SLUG_MAP[region.name]}_gen_${i + 1}`] = 1
+          updatedData.stats.openworld.collectibles.echologs_general[`el_g_${region.name}`][`${REGION_SLUG_MAP[region.name]}_gen_${paddedIndex}`] = 1
         }
         for (let i = 0; i < region.echologs_general_mis; i++) {
+          const paddedIndex = (i + 1).toString().padStart(2, '0')
           updatedData.stats.openworld.collectibles.echologs_general = updatedData.stats.openworld.collectibles.echologs_general || {}
           updatedData.stats.openworld.collectibles.echologs_general[`el_g_${region.name}`] = updatedData.stats.openworld.collectibles.echologs_general[`el_g_${region.name}`] || {}
-          updatedData.stats.openworld.collectibles.echologs_general[`el_g_${region.name}`][`${REGION_SLUG_MAP[region.name]}_mis_${i + 1}`] = 1
+          updatedData.stats.openworld.collectibles.echologs_general[`el_g_${region.name}`][`${REGION_SLUG_MAP[region.name]}_mis_${paddedIndex}`] = 1
         }
         
         for (let i = 0; i < region.echologs_arjay; i++) {
+          const paddedIndex = (i + 1).toString().padStart(2, '0')
           updatedData.stats.openworld.collectibles.echologs_arjay = updatedData.stats.openworld.collectibles.echologs_arjay || {}
           updatedData.stats.openworld.collectibles.echologs_arjay[`el_a_${region.name}`] = updatedData.stats.openworld.collectibles.echologs_arjay[`el_a_${region.name}`] || {}
-          updatedData.stats.openworld.collectibles.echologs_arjay[`el_a_${region.name}`][`${REGION_SLUG_MAP[region.name]}_arj_${i + 1}`] = 1
+          updatedData.stats.openworld.collectibles.echologs_arjay[`el_a_${region.name}`][`${REGION_SLUG_MAP[region.name]}_arj_${paddedIndex}`] = 1
         }
 
         for (let i = 0; i < region.echologs_vaulthunter; i++) {
+          const paddedIndex = (i + 1).toString().padStart(2, '0')
           updatedData.stats.openworld.collectibles.echologs_vaulthunter = updatedData.stats.openworld.collectibles.echologs_vaulthunter || {}
-          updatedData.stats.openworld.collectibles.echologs_vaulthunter[`el_v_${region.name}`] = updatedData.stats.openworld.collectibles.echologs_vaulthunter[`el_v_${region.name}`] || {}
-          updatedData.stats.openworld.collectibles.echologs_vaulthunter[`el_v_${region.name}`][`${REGION_SLUG_MAP[region.name]}_vh_${i + 1}`] = 1
+          updatedData.stats.openworld.collectibles.echologs_vaulthunter[`el_vh_${region.name}`] = updatedData.stats.openworld.collectibles.echologs_vaulthunter[`el_vh_${region.name}`] || {}
+          updatedData.stats.openworld.collectibles.echologs_vaulthunter[`el_vh_${region.name}`][`${REGION_SLUG_MAP[region.name]}_vh_${paddedIndex}`] = 1
         }
       }
     
