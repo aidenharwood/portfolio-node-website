@@ -32,7 +32,8 @@
 
       <!-- Upload Section -->
       <section v-if="!sessionId && steamIdLocked && !hasLoadedFiles"
-        class="bg-card rounded-lg border p-6 transition-all duration-300 ease-out">
+        class="bg-card rounded-lg border p-6 transition-all duration-300 ease-out"
+        :class="{'':isDragOverEditor}">
         <div class="flex items-center gap-3 mb-6">
           <div class="w-8 h-8 bg-green-500/20 rounded-md flex items-center justify-center">
             <i class="pi pi-folder-open text-green-500"></i>
@@ -56,11 +57,11 @@
       <!-- File Editor Section -->
       <section v-if="hasLoadedFiles" class="bg-card rounded-lg border" @drop.prevent="handleEditorDrop"
         @dragover.prevent="handleEditorDragOver" @dragleave="handleEditorDragLeave"
-        :class="{ 'ring-2 ring-blue-400 ring-opacity-50': isDragOverEditor }">
+        :class="{ 'border-dashed border-accent/50': isDragOverEditor }">
         <div class="flex items-center justify-between p-6 border-b">
           <div class="flex items-center gap-3">
-            <div class="w-8 h-8 bg-purple-500/20 rounded-md flex items-center justify-center">
-              <i class="pi pi-file-edit text-purple-500"></i>
+            <div class="w-8 h-8 bg-accent/20 rounded-md flex items-center justify-center">
+              <i class="pi pi-file-edit text-accent"></i>
             </div>
             <h2 class="text-xl font-semibold">Save Files Editor</h2>
             <span v-if="isDragOverEditor" class="text-sm text-blue-500 font-medium">

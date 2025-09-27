@@ -162,9 +162,11 @@ export function expandSaveDataWithItemContainers(saveData: any): any {
         const itemContainer = section as ItemContainer
         const items = itemContainer.deserializeItems(saveData)
         
-        // Create individual slot fields (limit to 25 for UI performance)
-        const maxSlots = Math.min(itemContainer.maxItems, 25)
-        for (let i = 0; i < maxSlots; i++) {
+  // Create individual slot fields up to the section's maxItems
+  // (previously capped at 25 for UI performance; remove cap so large containers like backpack/bank can expand)
+        // Only expand existing items into slot fields. Do not pre-create empty slots.
+        // This removes any artificial UI-imposed limits on how many slots can exist.
+        for (let i = 0; i < items.length; i++) {
           const item = items[i]
           if (item) {
             expandedData[`_slot_${sectionId}_${i}`] = item

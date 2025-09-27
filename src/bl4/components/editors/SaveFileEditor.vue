@@ -15,7 +15,7 @@
             </span>
             <span class="truncate text-left">{{ getFileDisplayName(file.name) }}</span>
             <span v-if="file.hasChanges"
-              class="absolute right-2 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-accent shadow-[0_0_0_4px] shadow-accent/20"
+              class="absolute right-2 top-1/2 h-2 w-2 -translate-y-3 -translate-x--3 rounded-full bg-accent shadow shadow-accent/20"
               title="Modified"></span>
           </button>
         </div>
@@ -46,35 +46,23 @@
       <div v-for="file in saveFiles" :key="file.name" v-show="props.activeSaveFile === file.name"
         class="flex flex-col gap-6 p-6">
         <div
-          class="flex flex-col gap-4 rounded-xl border border-border/60 p-4 sm:flex-row sm:items-start sm:justify-between">
-          <div class="space-y-2">
+          class="flex gap-4 rounded-xl border border-border/60 p-4 sm:flex-row sm:items-start sm:justify-between">
+          <div class="space-x-2 flex">
             <h3 class="text-lg font-semibold text-foreground">{{ getFileDisplayName(file.name) }}</h3>
-            <div class="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+            <div class="items-center gap-3 text-sm text-muted-foreground">
               <span
-                class="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/90 px-3 py-1">
+                class="inline-flex items-center gap-2 rounded-full border border-border/60 px-3 py-1">
                 <i class="pi pi-file text-xs"></i>
-                {{ (file.size / 1024).toFixed(1) }} KB
-              </span>
-              <span v-if="file.characterInfo"
-                class="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/90 px-3 py-1">
-                <i class="pi pi-user text-xs"></i>
-                {{ resolveClassName(file.characterInfo?.className) }} · Lv {{ file.characterInfo?.level }}
+                  {{ file.name }} - {{ (file.size / 1024).toFixed(1) }} KB
               </span>
             </div>
           </div>
           <div class="flex items-center gap-2">
             <button v-if="file.hasChanges" type="button"
-              class="inline-flex items-center gap-2 rounded-lg border border-border/60 bg-background px-3 py-1.5 text-sm font-semibold text-muted-foreground transition hover:border-accent hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+              class="inline-flex items-center gap-2 px-2 py-1 bg-accent text-accent-foreground rounded-md hover:bg-accent/90 transition-colors"
               @click="revertFile(file.name)" title="Revert changes">
               <i class="pi pi-undo text-xs"></i>
               Revert
-            </button>
-            <!-- Close editor / unload files (confirmation if unsaved changes exist) -->
-            <button type="button" @click="closeEditor()"
-              class="inline-flex items-center gap-2 rounded-lg border border-border/60 bg-background px-3 py-1.5 text-sm font-semibold text-muted-foreground transition hover:border-destructive hover:text-destructive focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40"
-              title="Close editor and unload files">
-              <i class="pi pi-times text-xs"></i>
-              Close
             </button>
           </div>
         </div>
@@ -162,13 +150,13 @@ function getFileIcon(fileName: string): string {
 function getFileDisplayName(fileName: string): string {
   if (fileName === 'profile.sav') {
     return 'Profile'
-  } else if (fileName.match(/\d+\.sav/)) {
+  } else {
     const match = fileName.match(/(\d+)\.sav/)
     const fileIndex = match ? match[1] : fileName.replace('.sav', '')
     const file = props.saveFiles.find(f => f.name === fileName)
 
     if (file?.characterInfo?.name) {
-      return `${file.characterInfo.name} - Lvl ${file.characterInfo.level} ${getClass(file.characterInfo)} (${fileIndex})`
+      return `${match ? `[${fileIndex}] ` : ''}${file.characterInfo.name} - ${getClass(file.characterInfo)} - Lv. ${file.characterInfo.level}`
     }
     return `Character ${fileIndex}`
   }
@@ -183,15 +171,5 @@ function getClass(characterInfo: { className?: string }): string {
 function getSaveType(fileName: string): 'character' | 'profile' {
   if (fileName === 'profile.sav') return 'profile'
   return 'character'
-}
-
-// Close editor, but confirm with user if there are unsaved changes
-function closeEditor() {
-  const hasUnsaved = props.saveFiles.some(f => f.hasChanges)
-  if (hasUnsaved) {
-    const confirmed = window.confirm('You have unsaved changes. Close and discard changes?')
-    if (!confirmed) return
-  }
-  emit('close')
 }
 </script>

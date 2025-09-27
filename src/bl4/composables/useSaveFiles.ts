@@ -305,18 +305,32 @@ export function useSaveFiles() {
       // Reset all content to original
       file.yamlContent = file.originalContent
       
+      // Reparse the original content to reset jsonData
       try {
-        const parsed = yaml.load(file.originalContent)
-        file.jsonData = parsed
+        // Use safer YAML loading options to handle problematic content
+        const parsedData = yaml.load(file.originalContent, {
+          schema: yaml.FAILSAFE_SCHEMA, // Use safer schema
+          json: true // Allow JSON fallback
+        })
+        file.jsonData = parsedData
         file.yamlError = ''
-      } catch (e) {
-        file.jsonData = null
-        file.yamlError = e instanceof Error ? e.message : 'Invalid YAML'
+        console.log(`Successfully reverted file ${fileName}`)
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Invalid YAML'
+        file.yamlError = errorMessage
+        console.error(`Error reverting file ${fileName}:`, error)
+        
+        // Try to parse as JSON as fallback
+        try {
+          const jsonData = JSON.parse(file.originalContent)
+          file.jsonData = jsonData
+          file.yamlError = 'Loaded as JSON (YAML parse failed)'
+          console.log(`Fallback: loaded ${fileName} as JSON`)
+        } catch (jsonError) {
+          console.error(`Both YAML and JSON parsing failed for ${fileName}:`, jsonError)
+          // Keep the original error message
+        }
       }
-
-      // Force a reactive update and refresh title/UI that depends on file data
-      saveFiles.value = [...saveFiles.value]
-      updatePageTitle()
       
       // Mark as no changes
       file.hasChanges = false

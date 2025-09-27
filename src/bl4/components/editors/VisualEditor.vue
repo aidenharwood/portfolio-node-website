@@ -527,10 +527,7 @@ const handleAddItemToContainer = (containerId: string) => {
   const section = baseSection as SlotBasedSection
   const currentItems = section.deserializeItems(props.jsonData)
 
-  if (currentItems.length >= section.maxItems) {
-    console.warn(`Container ${containerId} is at max capacity (${section.maxItems})`)
-    return
-  }
+  // No capacity guard: allow adding items without artificial limits
 
   const newItem = section.createEmptyItem()
   newItem.serial = `@NewItem${Date.now()}`

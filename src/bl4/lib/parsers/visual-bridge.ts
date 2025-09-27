@@ -30,7 +30,7 @@ function isSlotBasedSection(section: any): section is SlotBasedSection {
  * Convert a SlotBasedSection to VisualEditor format with individual slot sections
  */
 function convertSlotBasedSectionToEditorConfig(section: SlotBasedSection, saveData?: any): EditorSectionConfig[] {
-  const buildHeaderSection = (usedSlots: number, maxSlots: number, description?: string): EditorSectionConfig => ({
+  const buildHeaderSection = (_usedSlots: number, _maxSlots: number, description?: string): EditorSectionConfig => ({
     id: `${section.id}_container`,
     title: section.title,
     description: description ?? section.description,
@@ -42,8 +42,7 @@ function convertSlotBasedSectionToEditorConfig(section: SlotBasedSection, saveDa
       {
         id: 'add-item',
         icon: 'pi pi-plus',
-        variant: 'primary' as const,
-        disabled: usedSlots >= maxSlots
+        variant: 'primary' as const
       }
     ]
   })
@@ -55,7 +54,7 @@ function convertSlotBasedSectionToEditorConfig(section: SlotBasedSection, saveDa
   try {
     const allItems = section.deserializeItems(saveData)
     const usedSlots = allItems.filter(item => item && item.serial).length
-    const headerSection = buildHeaderSection(usedSlots, section.maxItems, `${usedSlots}/${section.maxItems} slots in use`)
+  const headerSection = buildHeaderSection(usedSlots, section.maxItems, `${usedSlots} slots in use`)
     const slotSections = section.generateSlotSections(saveData)
 		
     return [headerSection, ...slotSections.map(slotSection => ({
