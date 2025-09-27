@@ -315,8 +315,6 @@ const uncategorizedSections = computed(() => {
   }
 })
 
-const uncategorizedList = computed(() => Object.entries(uncategorizedSections.value ?? {}))
-
 watch(
   availableTabs,
   (tabs) => {
@@ -507,11 +505,6 @@ const handleUnlockEverything = async () => {
 }
 
 const handleAddItemToContainer = (containerId: string) => {
-  const config = getBL4Config(props.jsonData, activeTab.value)
-  const sections = config.filter(
-    (section) => section.id.startsWith(`${containerId}_slot_`) || section.id === `${containerId}_add_item`
-  )
-
   // if (sections.length === 0) {
   //   console.warn(`No sections found for container: ${containerId}`)
   //   return

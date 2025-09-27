@@ -134,10 +134,6 @@ function handleVisualJsonChange(fileName: string, newJsonData: any) {
   emit('jsonChange', fileName, newJsonData)
 }
 
-function revertFile(fileName: string) {
-  emit('revertFile', fileName)
-}
-
 function getFileIcon(fileName: string): string {
   if (fileName === 'profile.sav') {
     return 'pi pi-user'

@@ -318,33 +318,6 @@ const inputContainerClass = computed(() => {
 	return 'space-y-4 sm:col-span-2'
 })
 
-const showPath = computed(() => Boolean(props.yamlPath))
-
-const displayType = computed(() => {
-	switch (props.inputType) {
-		case 'string':
-			return 'Text Input'
-		case 'number':
-			return 'Number'
-		case 'boolean':
-			return 'Toggle'
-		case 'dropdown':
-			return 'Dropdown'
-		case 'multiselect':
-			return 'Multi-Select'
-		case 'array':
-			return 'Array'
-		case 'nested':
-			return 'Nested Object'
-		case 'objectArray':
-			return 'Object Array'
-		case 'button':
-			return 'Action'
-		default:
-			return ''
-	}
-})
-
 const reachedObjectArrayLimit = computed(() => {
 	if (!props.objectArrayMaxItems) return false
 	return objectArrayValue.value.length >= props.objectArrayMaxItems

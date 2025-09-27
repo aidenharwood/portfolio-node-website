@@ -117,10 +117,6 @@ const handleActionClick = (actionId: string) => {
   emit('sectionAction', actionId, props.section.id)
 }
 
-const getFieldCountLabel = (count: number) => {
-  return `${count} ${count === 1 ? 'field' : 'fields'}`
-}
-
 const actionButtonClass = (variant: 'primary' | 'secondary' | 'danger' | undefined) => {
   switch (variant) {
     case 'primary':
