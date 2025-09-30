@@ -14,9 +14,6 @@
 			</div>
 
 			<div :class="inputContainerClass">
-				<input v-if="props.inputType === 'string'" type="text" :class="inputBaseClass"
-					:placeholder="props.placeholder" :value="localValue ?? ''" @input="handleTextInput" />
-
 				<!-- Serial copy button -->
 				<div v-if="props.inputType === 'string' && isSerialField" class="flex items-center gap-2">
                   <button type="button" @click="copyToClipboard(localValue)" :class="[BUTTON_BASE, 'ml-2', 'rounded-md', 'px-3', 'font-mono']" :title="'Copy serial'">

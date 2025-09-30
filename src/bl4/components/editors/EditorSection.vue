@@ -75,7 +75,7 @@
     <div v-if="hasFields && (expanded || section.collapsible === false)" class="section-content space-y-4 p-5">
       <div class="section-fields space-y-2">
         <EditorField
-          v-for="field in section.fields"
+          v-for="field in dedupedFields"
           :key="field.yamlPath"
           v-bind="field"
           :value="getFieldValue(field.yamlPath)"
@@ -111,7 +111,22 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-const hasFields = computed(() => (props.section.fields?.length ?? 0) > 0)
+// Deduplicate fields by yamlPath to avoid showing duplicate inputs
+const dedupedFields = computed(() => {
+  const seen = new Set<string>()
+  const fields = props.section.fields ?? []
+  const result: any[] = []
+  for (const f of fields) {
+    const path = String((f && (f as any).yamlPath) ?? '')
+    if (!path) continue
+    if (seen.has(path)) continue
+    seen.add(path)
+    result.push(f)
+  }
+  return result
+})
+
+const hasFields = computed(() => (dedupedFields.value?.length ?? 0) > 0)
 const isCollapsible = computed(() => hasFields.value && props.section.collapsible !== false)
 
 // Determine whether this section is a slot-based item section (e.g., _slot_backpack_3)
