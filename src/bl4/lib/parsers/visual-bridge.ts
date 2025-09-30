@@ -57,34 +57,49 @@ function convertSlotBasedSectionToEditorConfig(section: SlotBasedSection, saveDa
   const headerSection = buildHeaderSection(usedSlots, section.maxItems, `${usedSlots} slots in use`)
     const slotSections = section.generateSlotSections(saveData)
 		
-    return [headerSection, ...slotSections.map(slotSection => ({
-      id: slotSection.id,
-      title: slotSection.title,
-      description: slotSection.description,
-      icon: slotSection.icon,
-      fields: slotSection.fields.map((field: any) => ({
-        yamlPath: field.path,
-        semanticName: field.name,
-        inputType: mapFieldTypeToInputType(field.type),
-        placeholder: field.placeholder,
-        description: `${field.name}`,
-        // Add type-specific options
-        ...(field.type === 'number' && {
-          numberMin: field.min,
-          numberMax: field.max,
-          numberStep: field.step
-        }),
-        ...(field.type === 'select' && {
-          dropdownOptions: field.options || []
-        }),
-        ...(field.type === 'multiselect' && {
-          multiselectOptions: field.options || []
+    return [
+      headerSection,
+      ...slotSections.map(slotSection => {
+        const mappedFields = slotSection.fields.map((field: any) => {
+          const inputType = field.type === 'select' ? 'dropdown' : mapFieldTypeToInputType(field.type)
+          return {
+            yamlPath: field.path,
+            semanticName: field.name,
+            inputType,
+            placeholder: field.placeholder,
+            description: `${field.name}`,
+            // Add type-specific options
+            ...(field.type === 'number' && {
+              numberMin: field.min,
+              numberMax: field.max,
+              numberStep: field.step
+            }),
+            ...(inputType === 'dropdown' && {
+              dropdownOptions: Array.isArray(field.options)
+                ? field.options
+                : (field.options ? Object.keys(field.options).map(k => ({ value: k, label: String((field.options as any)[k]) })) : [])
+            }),
+            ...(field.type === 'multiselect' && {
+              multiselectOptions: field.options || []
+            })
+          }
         })
-      })),
-      collapsible: true,
-      defaultExpanded: false,
-      actions: slotSection.actions || []
-    }))]
+
+        return {
+          id: slotSection.id,
+          // When meta is present, prefer metadata-driven UI; don't use title/description
+          title: (slotSection as any).meta ? '' : slotSection.title,
+          description: (slotSection as any).meta ? undefined : slotSection.description,
+          icon: slotSection.icon,
+          fields: mappedFields,
+          collapsible: true,
+          defaultExpanded: false,
+          actions: slotSection.actions || [],
+          // Preserve any metadata provided by the SlotBasedSection implementation
+          ...((slotSection as any).meta ? { meta: (slotSection as any).meta } : {})
+        }
+      })
+    ]
   } catch (error) {
     console.warn('Error converting SlotBasedSection:', error)
     return [{
@@ -113,25 +128,28 @@ function convertSerializableSectionToEditorConfig(section: SerializableSection, 
     title: section.title,
     description: section.description,
     icon: section.icon,
-    fields: fieldsToUse.map((field: any) => ({
-      yamlPath: field.path,
-      semanticName: field.name,
-      inputType: mapFieldTypeToInputType(field.type),
-      placeholder: field.placeholder,
-      description: `${field.name}${field.validation ? ' (validated)' : ''}`,
-      // Add type-specific options
-      ...(field.type === 'number' && {
-        numberMin: field.min,
-        numberMax: field.max,
-        numberStep: field.step
-      }),
-      ...(field.type === 'select' && {
-        dropdownOptions: field.options || []
-      }),
-      ...(field.type === 'multiselect' && {
-        multiselectOptions: field.options || []
-      })
-    })),
+    fields: fieldsToUse.map((field: any) => {
+      const inputType = field.type === 'select' ? 'dropdown' : mapFieldTypeToInputType(field.type)
+      return {
+        yamlPath: field.path,
+        semanticName: field.name,
+        inputType,
+        placeholder: field.placeholder,
+        description: `${field.name}${field.validation ? ' (validated)' : ''}`,
+        // Add type-specific options
+        ...(field.type === 'number' && {
+          numberMin: field.min,
+          numberMax: field.max,
+          numberStep: field.step
+        }),
+        ...(inputType === 'dropdown' && {
+          dropdownOptions: Array.isArray(field.options) ? field.options : (field.options ? Object.keys(field.options).map(k => ({ value: k, label: String((field.options as any)[k]) })) : [])
+        }),
+        ...(field.type === 'multiselect' && {
+          multiselectOptions: field.options || []
+        })
+      }
+    }),
     collapsible: true,
     defaultExpanded: false
   }

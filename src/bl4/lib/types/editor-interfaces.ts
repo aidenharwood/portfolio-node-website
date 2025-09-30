@@ -4,6 +4,7 @@ export interface EditorSectionConfig {
   title: string
   description?: string
   icon?: string
+  meta?: Record<string, any>
   fields: EditorFieldConfig[]
   collapsible?: boolean
   defaultExpanded?: boolean

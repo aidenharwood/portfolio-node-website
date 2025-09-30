@@ -45,7 +45,7 @@ export interface FileTypeInfo {
 /**
  * Detect if a file is a character save or profile save based on its content and name
  */
-export function detectFileType(file: File): FileTypeInfo {
+export async function detectFileType(file: File): Promise<FileTypeInfo> {
   const fileName = file.name.toLowerCase()
   const nameIsYaml = fileName.endsWith('.yaml') || fileName.endsWith('.yml')
   const nameIsSav = fileName.endsWith('.sav')
@@ -58,25 +58,15 @@ export function detectFileType(file: File): FileTypeInfo {
 
   // Check file content to determine actual format
   // If file contains null bytes, it's likely a binary SAV file regardless of extension
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const buffer = e.target?.result as ArrayBuffer
-    const bytes = new Uint8Array(buffer)
-    
-    // Check for null bytes (binary files)
-    const hasNullBytes = bytes.some(byte => byte === 0)
-    
-    if (hasNullBytes) {
-      // File contains null bytes, treat as SAV regardless of extension
-      result.format = 'sav'
-    } else {
-      // Text file, use extension-based detection
-      result.format = nameIsSav ? 'sav' : 'yaml'
-    }
-  }
+  const isBinary = await checkIfBinaryFile(file)
   
-  // Read first 1KB to check for binary content
-  reader.readAsArrayBuffer(file.slice(0, 1024))
+  if (isBinary) {
+    // File contains null bytes, treat as SAV regardless of extension
+    result.format = 'sav'
+  } else {
+    // Text file, use extension-based detection
+    result.format = nameIsSav ? 'sav' : 'yaml'
+  }
 
   // Simple filename-based type detection - this is all we need
   if (fileName.includes('profile')) {
@@ -88,6 +78,29 @@ export function detectFileType(file: File): FileTypeInfo {
   }
 
   return result
+}
+
+/**
+ * Helper function to check if a file contains binary data
+ */
+async function checkIfBinaryFile(file: File): Promise<boolean> {
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const buffer = e.target?.result as ArrayBuffer
+      const bytes = new Uint8Array(buffer)
+      
+      // Check for null bytes - definitive indicator of binary data
+      // YAML files should never contain null bytes
+      const hasNullBytes = bytes.some(byte => byte === 0)
+      
+      resolve(hasNullBytes)
+    }
+    reader.onerror = () => resolve(false) // Default to text if can't read
+    
+    // Read first 1KB to check for binary content
+    reader.readAsArrayBuffer(file.slice(0, 1024))
+  })
 }
 
 
@@ -105,7 +118,12 @@ export async function processYamlFile(file: File): Promise<{
   fileType: FileTypeInfo
 }> {
   const content = await file.text()
-  const fileType = detectFileType(file)
+  const fileType = await detectFileType(file)
+
+  // Safety check: if the file was detected as binary, don't try to parse as YAML
+  if (fileType.format === 'sav') {
+    throw new Error(`File ${file.name} appears to be a binary SAV file, not YAML. Please upload SAV files through the proper upload process.`)
+  }
 
   try {
     // Parse YAML with BL4 schema to handle unknown tags properly

@@ -8,7 +8,7 @@
             :class="[
               props.activeSaveFile === file.name
                 ? 'background-none text-muted-foreground border-none underline underline-offset-4 decoration-accent/50'
-                : 'border-border/60 bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground'
+                : 'border-border/60 bg-muted/60 text-muted-foreground hover:bg-muted'
             ]" @click="emit('update:activeSaveFile', file.name)">
             <span class="text-base">
               <i :class="getFileIcon(file.name)"></i>
@@ -35,7 +35,7 @@
                 ? 'bg-accent/15 text-muted-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'" @click="editorMode = 'visual'" title="Visual editor">
               <i class="pi pi-list"></i>
-              Visual (BETA)
+              Visual
             </button>
           </div>
         </div>

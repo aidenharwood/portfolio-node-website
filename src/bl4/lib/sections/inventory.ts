@@ -28,8 +28,8 @@ export class BackpackInventorySection extends BaseInventorySection {
       const slotData: Record<string, any> = {
         serial: item.serial
       }
-      if (item.flags !== undefined) slotData.flags = item.flags
-      if (item.state_flags !== undefined) slotData.state_flags = item.state_flags
+      if (item.flags !== undefined && Number(item.flags) !== 0) slotData.flags = item.flags
+      if (item.state_flags !== undefined && Number(item.state_flags) !== 0) slotData.state_flags = item.state_flags
       
       backpack[`slot_${index}`] = slotData
     })
@@ -62,8 +62,8 @@ export class BackpackInventorySection extends BaseInventorySection {
       .filter(({ data }) => data && data.serial) // Only include items with serials
       .map(({ data }) => ({
         serial: data.serial || '',
-        ...(data.flags !== undefined && { flags: data.flags }),
-        ...(data.state_flags !== undefined && { state_flags: data.state_flags })
+        flags: data.flags !== undefined ? data.flags : 0,
+        state_flags: data.state_flags !== undefined ? data.state_flags : 0
       }))
     
     return validItems
@@ -91,10 +91,15 @@ export class BankStorageSection extends BaseInventorySection {
     const validItems = items.filter(item => item && item.serial)
     
     validItems.forEach((item, index) => {
-      bank[`slot_${index}`] = {
-        serial: item.serial,
-        state_flags: item.state_flags || 9
+      const slotObj: Record<string, any> = { serial: item.serial }
+      if (item.state_flags !== undefined && Number(item.state_flags) !== 0) {
+        slotObj.state_flags = item.state_flags
       }
+      if (item.flags !== undefined && Number(item.flags) !== 0) {
+        slotObj.flags = item.flags
+      }
+
+      bank[`slot_${index}`] = slotObj
     })
     
     return {
@@ -123,12 +128,14 @@ export class BankStorageSection extends BaseInventorySection {
         const item = bankData[key]
         
         if (item && item.serial) { // Only include items with serials
+          const obj: any = {
+            serial: item.serial || '',
+            state_flags: item.state_flags !== undefined ? item.state_flags : 0,
+            flags: item.flags !== undefined ? item.flags : 0
+          }
           slots.push({
             index,
-            item: {
-              serial: item.serial || '',
-              state_flags: item.state_flags || 9
-            }
+            item: obj
           })
         }
       }
@@ -251,9 +258,10 @@ export class EquippedInventorySection implements SerializableSection {
       { path: 'state.inventory.equipped_inventory.equipped.slot_2.0.serial', name: 'Weapon Slot 3', type: 'weapon' },
       { path: 'state.inventory.equipped_inventory.equipped.slot_3.0.serial', name: 'Weapon Slot 4', type: 'weapon' },
       { path: 'state.inventory.equipped_inventory.equipped.slot_4.0.serial', name: 'Shield', type: 'shield' },
-      { path: 'state.inventory.equipped_inventory.equipped.slot_5.0.serial', name: 'Grenade', type: 'grenade' },
-      { path: 'state.inventory.equipped_inventory.equipped.slot_6.0.serial', name: 'Class Mod', type: 'classmod' },
-      { path: 'state.inventory.equipped_inventory.equipped.slot_7.0.serial', name: 'Artifact', type: 'artifact' }
+      { path: 'state.inventory.equipped_inventory.equipped.slot_5.0.serial', name: 'Ordnance', type: 'grenade' },
+      { path: 'state.inventory.equipped_inventory.equipped.slot_6.0.serial', name: 'Repkit', type: 'repkit' },
+      { path: 'state.inventory.equipped_inventory.equipped.slot_7.0.serial', name: 'Enhancement', type: 'enhancement' },
+      { path: 'state.inventory.equipped_inventory.equipped.slot_8.0.serial', name: 'Class Mod', type: 'classmod' }
     ]
 
     return equipmentSlots.map(slot => ({

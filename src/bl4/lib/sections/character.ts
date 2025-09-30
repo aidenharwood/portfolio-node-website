@@ -95,11 +95,11 @@ export class CharacterInfoSection implements SerializableSection {
             name: 'Unlocked Equipment Slots',
             type: 'multiselect',
             options: [
-                { value: 2, label: 'Weapon Slot 3' },
-                { value: 3, label: 'Weapon Slot 4' },
-                { value: 6, label: 'Class Mod Slot' },
-                { value: 7, label: 'Artifact Slot' },
-                { value: 8, label: 'Echo Device Slot' }
+                { value: 2, label: 'Weapon 3' },
+                { value: 3, label: 'Weapon 4' },
+                { value: 6, label: 'Repkit' },
+                { value: 7, label: 'Enhancement' },
+                { value: 8, label: 'Class Mod' }
             ],
             validation: (value) => Array.isArray(value) && value.every(v => Number.isInteger(v) && v >= 0 && v <= 8)
         },
@@ -127,26 +127,25 @@ export class CharacterInfoSection implements SerializableSection {
         }
     ]
 
+
     serialize(data: any): Record<string, any> {
-        return {
-            state: {
-                char_guid: data.state?.char_guid || '',
-                char_name: data.state?.char_name || '',
-                class: data.state?.class || 'Char_DarkSiren',
-                player_difficulty: data.state?.player_difficulty || 'Normal',
-                experience: data.state?.experience || [
-                    { type: 'Character', level: 1, points: 0 },
-                    { type: 'Specialization', level: 1, points: 0 }
-                ],
-                equipped_inventory: {
-                    equip_slots_unlocked: data.state?.equipped_inventory?.equip_slots_unlocked || []
-                },
-                equipped: {
-                    active_slot: data.state?.equipped?.active_slot || 0
-                },
-                vehicle_weapon_slot: data.state?.vehicle_weapon_slot || 1
-            }
+        const stateObj: Record<string, any> = {
+            char_guid: data.state?.char_guid || '',
+            char_name: data.state?.char_name || '',
+            class: data.state?.class || 'Char_DarkSiren',
+            player_difficulty: data.state?.player_difficulty || 'Normal',
+            experience: data.state?.experience || [
+                { type: 'Character', level: 1, points: 0 },
+                { type: 'Specialization', level: 1, points: 0 }
+            ],
+            inventory: {
+                equip_slots_unlocked: data.state?.inventory?.equip_slots_unlocked || []
+            },
+            inventory_active_slot: data.state?.inventory_active_slot ?? data.state?.active_slot ?? 0,
+            vehicle_weapon_slot: data.state?.vehicle_weapon_slot || 1
         }
+
+        return { state: stateObj }
     }
 
     deserialize(data: Record<string, any>): any {

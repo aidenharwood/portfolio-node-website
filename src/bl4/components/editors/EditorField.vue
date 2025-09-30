@@ -1,18 +1,12 @@
 <template>
 	<div class="rounded-xl border border-border/50 bg-card/60 shadow-sm transition hover:border-border/80">
-		<div
-			class="grid gap-4 p-4 sm:p-5"
-			:class="inlineLayout ? 'sm:grid-cols-[minmax(200px,0.45fr)_1fr] sm:items-center sm:gap-6' : 'sm:grid-cols-[minmax(200px,0.45fr)_1fr] sm:items-start'"
-		>
+		<div class="grid gap-4 p-4 sm:p-5"
+			:class="inlineLayout ? 'sm:grid-cols-[minmax(200px,0.45fr)_1fr] sm:items-center sm:gap-6' : 'sm:grid-cols-[minmax(200px,0.45fr)_1fr] sm:items-start'">
 			<div class="flex flex-col">
 				<div class="flex items-center gap-2 text-sm font-semibold text-foreground">
 					<span class="truncate">{{ props.semanticName }}</span>
-					<button
-						v-if="props.description"
-						type="button"
-						:title="props.description"
-						class="inline-flex h-6 w-6 items-center justify-center rounded-full border border-border/40 text-xs text-muted-foreground transition hover:border-border hover:text-foreground"
-					>
+					<button v-if="props.description" type="button" :title="props.description"
+						class="inline-flex h-6 w-6 items-center justify-center rounded-full border border-border/40 text-xs text-muted-foreground transition hover:border-border hover:text-foreground">
 						<i class="pi pi-info-circle"></i>
 						<span class="sr-only">Field help</span>
 					</button>
@@ -20,80 +14,61 @@
 			</div>
 
 			<div :class="inputContainerClass">
-				<input
-					v-if="props.inputType === 'string'"
-					type="text"
-					:class="inputBaseClass"
-					:placeholder="props.placeholder"
-					:value="localValue ?? ''"
-					@input="handleTextInput"
-				/>
+				<input v-if="props.inputType === 'string'" type="text" :class="inputBaseClass"
+					:placeholder="props.placeholder" :value="localValue ?? ''" @input="handleTextInput" />
 
-				<input
-					v-else-if="props.inputType === 'number'"
-					type="number"
-					:class="inputBaseClass"
-					:placeholder="props.placeholder"
-					:step="props.numberStep ?? 1"
-					:min="props.numberMin"
-					:max="props.numberMax"
-					:value="localValue ?? ''"
-					@input="handleNumberInput"
-				/>
+				<!-- Serial copy button -->
+				<div v-if="props.inputType === 'string' && isSerialField" class="flex items-center gap-2">
+                  <button type="button" @click="copyToClipboard(localValue)" :class="[BUTTON_BASE, 'ml-2', 'rounded-md', 'px-3', 'font-mono']" :title="'Copy serial'">
+                    <i class="pi pi-copy"></i>
+                    <span class="truncate max-w-[24ch] ml-2">{{ localValue }}</span>
+                  </button>
+                  <!-- Serial editor quick action (open unified SerialEditor focused on serial) -->
+                  <button type="button" @click.stop="() => emit('openItemEditor', props.yamlPath)" class="ml-2 inline-flex items-center gap-2 rounded-md border px-2 py-1 text-xs">
+                    <i class="pi pi-code"></i>
+                    <span>Edit serial</span>
+                  </button>
+                </div>
 
-				<label
-					v-else-if="props.inputType === 'boolean'"
-					class="inline-flex items-center gap-3 rounded-lg border border-border/60 bg-background/70 px-3 py-2 text-sm font-medium text-foreground shadow-sm"
-				>
-					<input
-						type="checkbox"
+				<input v-else-if="props.inputType === 'number'" type="number" :class="inputBaseClass"
+					:placeholder="props.placeholder" :step="props.numberStep ?? 1" :min="props.numberMin"
+					:max="props.numberMax" :value="localValue ?? ''" @input="handleNumberInput" />
+
+				<label v-else-if="props.inputType === 'boolean'"
+					class="inline-flex items-center gap-3 rounded-lg border border-border/60 bg-background/70 px-3 py-2 text-sm font-medium text-foreground shadow-sm">
+					<input type="checkbox"
 						class="h-4 w-4 rounded border-border/60 text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-						:checked="Boolean(localValue)"
-						@change="handleBooleanChange"
-					/>
+						:checked="Boolean(localValue)" @change="handleBooleanChange" />
 					<span>{{ props.booleanLabel || 'Enabled' }}</span>
 				</label>
 
-				<select
-					v-else-if="props.inputType === 'dropdown'"
-					:class="inputBaseClass"
-					:value="serializeOptionValue(localValue)"
-					@change="handleDropdownChange"
-				>
+				<select v-else-if="props.inputType === 'dropdown'" :class="inputBaseClass"
+					:value="serializeOptionValue(localValue)" @change="handleDropdownChange">
 					<option value="" disabled v-if="!props.dropdownOptions?.length">No options configured</option>
-					<option v-for="option in props.dropdownOptions ?? []" :key="serializeOptionValue(option.value)" :value="serializeOptionValue(option.value)">
+					<option v-for="option in props.dropdownOptions ?? []" :key="serializeOptionValue(option.value)"
+						:value="serializeOptionValue(option.value)">
 						{{ option.label }}
 					</option>
 				</select>
 
 				<div v-else-if="props.inputType === 'multiselect'" class="space-y-3">
 					<div v-if="props.multiselectOptions?.length" class="flex flex-wrap gap-2">
-						<label
-							v-for="option in props.multiselectOptions"
-							:key="serializeOptionValue(option.value)"
-							class="flex items-center gap-2 rounded-lg border border-border/50 bg-background/70 px-3 py-2 text-sm text-foreground shadow-sm"
-						>
-							<input
-								type="checkbox"
+						<label v-for="option in props.multiselectOptions" :key="serializeOptionValue(option.value)"
+							class="flex items-center gap-2 rounded-lg border border-border/50 bg-background/70 px-3 py-2 text-sm text-foreground shadow-sm">
+							<input type="checkbox"
 								class="h-4 w-4 rounded border-border/60 text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
 								:checked="isMultiselectOptionSelected(option.value)"
-								@change="(event) => handleMultiselectOptionChange(option.value, event)"
-							/>
+								@change="(event) => handleMultiselectOptionChange(option.value, event)" />
 							<span>{{ option.label }}</span>
 						</label>
 					</div>
-					<p v-else class="rounded-lg border border-border/40 bg-background/70 px-3 py-2 text-sm text-muted-foreground">
+					<p v-else
+						class="rounded-lg border border-border/40 bg-background/70 px-3 py-2 text-sm text-muted-foreground">
 						No multiselect options configured.
 					</p>
-					<div
-						v-if="Array.isArray(localValue) && localValue.length"
-						class="flex flex-wrap gap-2"
-					>
-						<span
-							v-for="value in localValue"
-							:key="serializeOptionValue(value)"
-							class="inline-flex items-center gap-1 rounded-full border border-border/50 bg-background/80 px-2 py-1 text-xs font-medium text-foreground"
-						>
+					<div v-if="Array.isArray(localValue) && localValue.length" class="flex flex-wrap gap-2">
+						<span v-for="value in localValue" :key="serializeOptionValue(value)"
+							class="inline-flex items-center gap-1 rounded-full border border-border/50 bg-background/80 px-2 py-1 text-xs font-medium text-foreground">
 							{{ getMultiselectLabel(value) }}
 						</span>
 					</div>
@@ -101,62 +76,43 @@
 
 				<div v-else-if="props.inputType === 'array'" class="space-y-3">
 					<div v-if="arrayValue.length" class="space-y-3">
-						<div
-							v-for="(item, index) in arrayValue"
-							:key="index"
-							class="flex flex-col gap-3 rounded-lg border border-border/50 bg-background/70 p-3 shadow-sm sm:flex-row sm:items-center sm:gap-4"
-						>
+						<div v-for="(item, index) in arrayValue" :key="index"
+							class="flex flex-col gap-3 rounded-lg border border-border/50 bg-background/70 p-3 shadow-sm sm:flex-row sm:items-center sm:gap-4">
 							<div class="flex-1">
 								<template v-if="props.arrayItemType === 'number'">
-									<input
-										type="number"
-										:class="inputBaseClass"
-										:value="item ?? ''"
+									<input type="number" :class="inputBaseClass" :value="item ?? ''"
 										:step="props.numberStep ?? 1"
-										@input="(event) => handleArrayItemChange(index, event)"
-									/>
+										@input="(event) => handleArrayItemChange(index, event)" />
 								</template>
 								<template v-else-if="props.arrayItemType === 'boolean'">
 									<label class="inline-flex items-center gap-3">
-										<input
-											type="checkbox"
+										<input type="checkbox"
 											class="h-4 w-4 rounded border-border/60 text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
 											:checked="Boolean(item)"
-											@change="(event) => handleArrayItemChange(index, event)"
-										/>
+											@change="(event) => handleArrayItemChange(index, event)" />
 										<span class="text-sm text-foreground">Enabled</span>
 									</label>
 								</template>
 								<template v-else-if="props.arrayItemType === 'dropdown'">
-									<select
-										:class="inputBaseClass"
-										:value="serializeOptionValue(item)"
-										@change="(event) => handleArrayItemChange(index, event)"
-									>
-										<option
-											v-for="option in props.arrayItemOptions ?? []"
+									<select :class="inputBaseClass" :value="serializeOptionValue(item)"
+										@change="(event) => handleArrayItemChange(index, event)">
+										<option v-for="option in props.arrayItemOptions ?? []"
 											:key="serializeOptionValue(option.value)"
-											:value="serializeOptionValue(option.value)"
-										>
+											:value="serializeOptionValue(option.value)">
 											{{ option.label }}
 										</option>
 									</select>
 								</template>
 								<template v-else>
-									<input
-										type="text"
-										:class="inputBaseClass"
-										:value="item ?? ''"
-										@input="(event) => handleArrayItemChange(index, event)"
-									/>
+									<input type="text" :class="inputBaseClass" :value="item ?? ''"
+										@input="(event) => handleArrayItemChange(index, event)" />
 								</template>
 							</div>
 
 							<button
 								type="button"
-								class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-destructive transition hover:bg-destructive/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive/30 sm:w-auto"
 								@click="handleArrayRemove(index)"
-							>
+								:class="[BUTTON_BASE, 'w-full', 'font-semibold', 'uppercase', 'tracking-wide', 'text-destructive', 'border-destructive/50', 'bg-destructive/10', 'sm:w-auto']">
 								<i class="pi pi-times text-xs"></i>
 								<span>Remove</span>
 							</button>
@@ -165,16 +121,16 @@
 
 					<button
 						type="button"
-					class="inline-flex items-center justify-center gap-2 rounded-lg border border-border/60 bg-background/80 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-foreground transition hover:border-foreground/40 hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
 						@click="handleArrayAdd"
-					>
+						:class="[BUTTON_BASE, 'font-semibold', 'uppercase', 'tracking-wide']">
 						<i class="pi pi-plus text-xs"></i>
 						Add item
 					</button>
 				</div>
 
 				<div v-else-if="props.inputType === 'nested'" class="space-y-3">
-					<div class="flex items-center justify-between rounded-lg border border-border/60 bg-background/70 px-3 py-2">
+					<div
+						class="flex items-center justify-between rounded-lg border border-border/60 bg-background/70 px-3 py-2">
 						<div class="flex items-center gap-2 text-sm font-semibold text-foreground">
 							<i class="pi pi-folder"></i>
 							<span>Nested fields</span>
@@ -182,92 +138,72 @@
 						<button
 							v-if="props.nestedCollapsible !== false"
 							type="button"
-							class="inline-flex items-center justify-center rounded-md border border-border/60 bg-background/80 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground transition hover:border-border hover:text-foreground"
 							@click="toggleNested"
-						>
+							:class="[BUTTON_BASE, 'rounded-md', 'px-2', 'text-muted-foreground']">
 							<i class="pi" :class="isNestedExpanded ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
 						</button>
 					</div>
 
 					<div v-if="isNestedExpanded" class="space-y-4">
-						<EditorField
-							v-for="nestedField in props.nestedConfig ?? []"
-							:key="nestedField.yamlPath"
-							v-bind="nestedField"
-							:yamlPath="nestedField.yamlPath"
+						<EditorField v-for="nestedField in props.nestedConfig ?? []" :key="nestedField.yamlPath"
+							v-bind="nestedField" :yamlPath="nestedField.yamlPath"
 							:value="getNestedValue(nestedField.yamlPath)"
-							@update="(value) => handleNestedUpdate(nestedField.yamlPath, value)"
-						/>
+							@update="(value) => handleNestedUpdate(nestedField.yamlPath, value)" />
 					</div>
 				</div>
 
 				<div v-else-if="props.inputType === 'objectArray'" class="space-y-4">
 					<div v-if="objectArrayValue.length" class="space-y-4">
-						<div
-							v-for="(item, index) in objectArrayValue"
-							:key="index"
-							class="rounded-lg border border-border/60 bg-background/70 p-4 shadow-sm"
-						>
+						<div v-for="(item, index) in objectArrayValue" :key="index"
+							class="rounded-lg border border-border/60 bg-background/70 p-4 shadow-sm">
 							<div class="flex flex-wrap items-center justify-between gap-3">
 								<div class="flex flex-col">
 									<span class="text-sm font-semibold text-foreground">
 										{{ getObjectArrayItemDisplayValue(item) }}
-										<span class="ml-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">#{{ index + 1 }}</span>
+										<span
+											class="ml-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">#{{
+												index +
+											1 }}</span>
 									</span>
 								</div>
 								<button
 									type="button"
-									class="inline-flex items-center justify-center gap-2 rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-destructive transition hover:bg-destructive/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive/30"
 									@click="removeObjectArrayItem(index)"
-								>
+									:class="[BUTTON_BASE, 'font-semibold', 'uppercase', 'tracking-wide', 'text-destructive', 'border-destructive/50', 'bg-destructive/10']">
 									<i class="pi pi-trash text-xs"></i>
 									Remove
 								</button>
 							</div>
 
 							<div class="mt-4 space-y-4">
-								<EditorField
-									v-for="fieldConfig in props.objectArrayItemConfig ?? []"
-									:key="fieldConfig.yamlPath"
-									v-bind="fieldConfig"
-									:yamlPath="fieldConfig.yamlPath"
+								<EditorField v-for="fieldConfig in props.objectArrayItemConfig ?? []"
+									:key="fieldConfig.yamlPath" v-bind="fieldConfig" :yamlPath="fieldConfig.yamlPath"
 									:value="getObjectArrayItemValue(item, fieldConfig.yamlPath)"
-									@update="(value) => updateObjectArrayItemField(index, fieldConfig.yamlPath, value)"
-								/>
+									@update="(value) => updateObjectArrayItemField(index, fieldConfig.yamlPath, value)" />
 							</div>
 						</div>
 					</div>
 
 					<button
 						type="button"
-					class="inline-flex items-center justify-center gap-2 rounded-lg border border-border/60 bg-background/80 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-foreground transition hover:border-foreground/40 hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-60"
 						@click="addObjectArrayItem"
 						:disabled="reachedObjectArrayLimit"
-					>
+						:class="[BUTTON_BASE, 'font-semibold', 'uppercase', 'tracking-wide', 'disabled:opacity-60']">
 						<i class="pi pi-plus text-xs"></i>
 						{{ props.objectArrayAddButtonText ?? 'Add item' }}
 						<span v-if="reachedObjectArrayLimit" class="text-xs text-muted-foreground">(max {{ props.objectArrayMaxItems }})</span>
 					</button>
 				</div>
 
-				<button
-					v-else-if="props.inputType === 'button'"
-					type="button"
-					class="inline-flex items-center justify-center gap-2 rounded-lg border bg-primary/15 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-accent-foreground transition hover:bg-primary/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+				<button v-else-if="props.inputType === 'button'" type="button"
 					@click="handleButtonClick"
-				>
+					:class="[BUTTON_BASE, 'px-4', 'font-semibold', 'uppercase', 'tracking-wide', 'bg-primary/15', 'text-accent-foreground']">
 					<i class="pi pi-bolt text-xs"></i>
 					{{ props.semanticName }}
 				</button>
 
-				<input
-					v-else
-					type="text"
-					:class="inputBaseClass"
-					:placeholder="props.placeholder"
-					:value="localValue ?? ''"
-					@input="handleTextInput"
-				/>
+				<input v-else type="text" :class="inputBaseClass" :placeholder="props.placeholder"
+					:value="localValue ?? ''" @input="handleTextInput" />
 			</div>
 		</div>
 	</div>
@@ -275,7 +211,10 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { copyToClipboard } from '../../lib/utils/clipboard'
 import type { EditorFieldConfig } from '../../lib/types/editor-interfaces'
+import { getItemDisplayName, decodeItemSerial } from '../../lib/utils/serial-utils'
 
 defineOptions({ name: 'EditorField' })
 
@@ -285,6 +224,7 @@ interface Props extends EditorFieldConfig {
 
 interface Emits {
 	(e: 'update', value: any): void
+	(e: 'openItemEditor', yamlPath: string): void
 }
 
 const props = defineProps<Props>()
@@ -309,6 +249,9 @@ const isNestedExpanded = ref(true)
 const inputBaseClass =
 	'w-full rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-sm text-foreground shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-60 placeholder:text-muted-foreground/70'
 
+// Standard button base to keep buttons uniform height and alignment
+const BUTTON_BASE = 'inline-flex items-center justify-center h-10 gap-2 rounded-lg border px-3 text-xs'
+
 const isComplexInput = computed(() => ['multiselect', 'array', 'nested', 'objectArray'].includes(props.inputType))
 const inlineLayout = computed(() => !isComplexInput.value)
 const inputContainerClass = computed(() => {
@@ -321,6 +264,12 @@ const inputContainerClass = computed(() => {
 const reachedObjectArrayLimit = computed(() => {
 	if (!props.objectArrayMaxItems) return false
 	return objectArrayValue.value.length >= props.objectArrayMaxItems
+})
+
+const isSerialField = computed(() => {
+  if (!props.yamlPath) return false
+  const lowerName = (props.semanticName || '').toString().toLowerCase()
+  return String(props.yamlPath).endsWith('.serial') || lowerName.includes('serial')
 })
 
 watch(
@@ -520,6 +469,28 @@ const getObjectArrayItemDisplayValue = (item: any) => {
 		}
 	}
 
+		// If the display field contains a serial, try to decode and build a concise summary
+		if (typeof current === 'string' && current.startsWith('@U')) {
+			try {
+				const decoded = decodeItemSerial(current)
+				const typeLabel = decoded?.itemCategory ? String(decoded.itemCategory).replace(/_/g, ' ') : (decoded?.itemType || '')
+				const lvl = decoded?.stats?.level
+				const rar = decoded?.stats?.rarity
+				const p = decoded?.stats?.primaryStat
+				const s = decoded?.stats?.secondaryStat
+				const parts: string[] = []
+				if (typeLabel) parts.push(typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1))
+				if (lvl || lvl === 0) parts.push(`Lv${lvl}`)
+				if (rar || rar === 0) parts.push(`R${rar}`)
+				if (p !== undefined) parts.push(`P:${p}`)
+				if (s !== undefined) parts.push(`S:${s}`)
+				const summary = parts.length > 0 ? parts.join(' • ') : getItemDisplayName(current)
+				return summary
+			} catch (error) {
+				console.warn(`Failed to decode serial for display:`, error)
+			}
+		}
+
 	return current || 'Item'
 }
 
@@ -614,4 +585,7 @@ const getMultiselectLabel = (value: any) => {
 const handleButtonClick = () => {
 	emit('update', true)
 }
+
+// Template-only usage can confuse the TypeScript checker.
+// No template-only references needed here.
 </script>

@@ -55,6 +55,7 @@ export const unlockAllCosmeticsAction: QuickUnlockAction = {
       }
     });
 
+    updatedData.domains.local.shared.unlockables = updatedData.domains.local.shared.unlockables || {}
     updatedData.domains.local.shared.unlockables.unlockable_weapons = updatedData.domains.local.shared.unlockables.unlockable_weapons || { entries: [] }
     COSMETICS.weapons.forEach(cosmetic => {
       if (!updatedData.domains.local.shared.unlockables.unlockable_weapons.entries.includes(cosmetic)) {

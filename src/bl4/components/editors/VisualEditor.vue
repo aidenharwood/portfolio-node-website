@@ -1,19 +1,15 @@
 <template>
   <div class="flex flex-col ">
-    <div
-      v-if="availableTabs.length > 1"
-    >  
+    <div v-if="availableTabs.length > 1">
       <!-- Quick Unlocks Section: Grouped Buttons -->
       <div class="space-y-4 mb-4">
         <div class="flex items-center justify-between gap-4">
           <div class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Quick Unlocks</div>
           <div>
-            <button
-              type="button"
+            <button type="button"
               class="unlock-everything-btn inline-flex items-center gap-3 rounded-md border border-border/60 bg-accent/90 px-4 py-2 text-sm font-semibold text-accent-foreground hover:brightness-95 transition"
               :class="{ 'quick-action-animate': quickActionStates['unlock-everything'] }"
-              @click="handleUnlockEverything"
-            >
+              @click="handleUnlockEverything">
               <i class="pi pi-unlock"></i>
               <span>UNLOCK EVERYTHING</span>
             </button>
@@ -26,14 +22,10 @@
               <span class="font-semibold">{{ group.label }}</span>
             </div>
             <div class="flex flex-wrap gap-2">
-              <button
-                v-for="action in group.actions"
-                :key="action.id"
-                type="button"
+              <button v-for="action in group.actions" :key="action.id" type="button"
                 class="inline-flex items-center gap-2 rounded-md border border-border/60 bg-muted/60 px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-muted hover:text-foreground transition duration-300"
                 :class="{ 'quick-action-animate': quickActionStates[action.id] }"
-                @click="handleQuickUnlockAction(action.id)"
-              >
+                @click="handleQuickUnlockAction(action.id)">
                 <!-- Icon container keeps a fixed size so swapping icons doesn't change layout -->
                 <span class="quick-action-icon" aria-hidden="true">
                   <i v-if="action.icon" :class="action.icon" class="icon-original" />
@@ -48,18 +40,13 @@
       <!-- End Quick Unlocks Section -->
 
       <div class="flex flex-wrap gap-2 mx-8">
-        <button
-          v-for="tab in availableTabs"
-          :key="tab.id"
-          type="button"
+        <button v-for="tab in availableTabs" :key="tab.id" type="button"
           class="relative inline-flex items-center gap-2 rounded-t-lg border-t border-x px-4 py-2 text-sm font-semibold"
           :class="[
             activeTab === tab.id
               ? 'text-muted-foreground shadow-sm'
               : 'border-none bg-none text-muted-foreground hover:bg-muted hover:text-foreground'
-          ]"
-          @click="activeTab = tab.id"
-        >
+          ]" @click="activeTab = tab.id">
           <span class="text-base text-muted-foreground">
             <i :class="getTabIcon(tab.icon)"></i>
           </span>
@@ -68,10 +55,8 @@
       </div>
     </div>
 
-    <div
-      v-if="parseError"
-      class="rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive"
-    >
+    <div v-if="parseError"
+      class="rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
       <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-3">
         <i class="pi pi-exclamation-triangle text-base"></i>
         <div class="space-y-41">
@@ -86,7 +71,8 @@
 
     <div v-else class="flex flex-col gap-6 background-transparent">
       <div v-if="!fileName || currentTabSections.length === 0" class="flex justify-center">
-        <div class="inline-flex items-center gap-3 rounded-xl border border-border/60 bg-background/80 px-4 py-3 text-sm text-muted-foreground">
+        <div
+          class="inline-flex items-center gap-3 rounded-xl border border-border/60 bg-background/80 px-4 py-3 text-sm text-muted-foreground">
           <i class="pi pi-info-circle text-base"></i>
           <span v-if="!fileName">No file selected for editing.</span>
           <span v-else>No editable fields configured for this tab.</span>
@@ -95,31 +81,17 @@
 
       <div v-else class="rounded-xl border bg-none p-4">
         <div v-if="currentTabSections.length === 1" class="space-y-4">
-          <EditorSection
-            :key="currentTabSections[0].id"
-            :section="{
-              ...currentTabSections[0],
-              collapsible: false,
-              defaultExpanded: true
-            }"
-            :yamlData="yamlData"
-            :expanded="true"
-            @toggle="() => {}"
-            @fieldUpdate="handleFieldUpdate"
-            @sectionAction="handleSectionAction"
-          />
+          <EditorSection :key="currentTabSections[0].id" :section="{
+            ...currentTabSections[0],
+            collapsible: false,
+            defaultExpanded: true
+          }" :yamlData="yamlData" :expanded="true" @toggle="() => { }" @fieldUpdate="handleFieldUpdate"
+            @sectionAction="handleSectionAction" @openItemEditor="handleOpenItemEditor" />
         </div>
         <div v-else class="space-y-4 section-stack maximized-section">
-          <EditorSection
-            v-for="section in currentTabSections"
-            :key="section.id"
-            :section="section"
-            :yamlData="yamlData"
-            :expanded="expandedSections[section.id] ?? section.defaultExpanded ?? false"
-            @toggle="toggleSection"
-            @fieldUpdate="handleFieldUpdate"
-            @sectionAction="handleSectionAction"
-          />
+          <EditorSection v-for="section in currentTabSections" :key="section.id" :section="section" :yamlData="yamlData"
+            :expanded="expandedSections[section.id] ?? section.defaultExpanded ?? false" @toggle="toggleSection"
+            @fieldUpdate="handleFieldUpdate" @sectionAction="handleSectionAction" @openItemEditor="handleOpenItemEditor" />
         </div>
       </div>
 
@@ -139,17 +111,28 @@
         />
       </div> -->
     </div>
+
+    <SerialEditor
+      v-if="editingSlot && editingItem"
+      :serial="editingItem?.serial"
+      :flags="editingItem?.flags"
+      :state_flags="editingItem?.state_flags"
+      @save="saveSlotItemEditor"
+      @close="closeSlotItemEditor"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
 import EditorSection from './EditorSection.vue'
+import SerialEditor from './SerialEditor.vue'
 import { setValueByPath, getUncategorizedPaths, categorizePaths, deepClone, createEditorConfigFromUncategorized } from '../../lib/utils'
 import {
   getOptimizedTabs,
   getBL4Config,
   setItemContainerData,
+  getItemContainerData,
   isItemContainerPath,
   extractSectionAndSlotFromPath,
   expandSaveDataWithItemContainers,
@@ -157,6 +140,7 @@ import {
 } from '../../lib/parsers'
 import { SectionRegistry, type SlotBasedSection } from '../../lib/sections'
 import { runQuickUnlock, getQuickUnlockGroups } from '../../lib/quick-unlocks'
+import { copyToClipboard } from '../../lib/utils/clipboard'
 
 export interface EditorFieldConfig {
   yamlPath: string
@@ -401,6 +385,20 @@ const handleSectionAction = (actionId: string, sectionId: string) => {
     const slotNum = parseInt(slotIndex, 10)
 
     switch (actionId) {
+      case 'copy-serial':
+        try {
+          const items = getItemContainerData(props.jsonData, containerId)
+          const item = items[slotNum]
+          if (item && item.serial) {
+            copyToClipboard(item.serial)
+          }
+        } catch (error) {
+          console.warn('Failed to copy serial:', error)
+        }
+        break
+      case 'edit-item':
+        openSlotItemEditor(containerId, slotNum)
+        break
       case 'remove-item':
         handleRemoveItem(containerId, slotNum)
         break
@@ -568,6 +566,69 @@ const getTabIcon = (icon?: string) => {
   }
   return 'pi pi-folder'
 }
+
+function handleOpenItemEditor(yamlPath: string) {
+  // yamlPath should reference a slot path like '_slot_backpack_3.serial' or similar
+  const slotInfo = extractSectionAndSlotFromPath(yamlPath)
+  if (!slotInfo) {
+    console.warn('openItemEditor: failed to parse slot from path:', yamlPath)
+    return
+  }
+  const { sectionId, slotIndex } = slotInfo
+  openSlotItemEditor(sectionId, slotIndex)
+}
+
+// Per-slot item editor state
+const editingSlot = ref<{ containerId: string; slotIndex: number } | null>(null)
+const editingItem = ref<any | null>(null)
+
+function openSlotItemEditor(containerId: string, slotIndex: number) {
+  editingSlot.value = { containerId, slotIndex }
+  try {
+    const items = getItemContainerData(props.jsonData, containerId)
+    editingItem.value = items[slotIndex] ? { ...items[slotIndex] } : null
+  } catch (error) {
+    editingItem.value = null
+  }
+}
+
+function closeSlotItemEditor() {
+  editingSlot.value = null
+  editingItem.value = null
+}
+
+function saveSlotItemEditor(updated: any) {
+  if (!editingSlot.value) return
+  const { containerId, slotIndex } = editingSlot.value
+  const items = getItemContainerData(props.jsonData, containerId)
+  if (slotIndex >= 0 && slotIndex < items.length) {
+    // If flags/state_flags are numerics, apply special omission semantics:
+    if ('flags' in updated) {
+      if (updated.flags === 0) {
+        // Remove flags key to ensure YAML omits it
+        if (items[slotIndex] && 'flags' in items[slotIndex]) delete items[slotIndex].flags
+      } else {
+        items[slotIndex].flags = updated.flags
+      }
+      delete updated.flags
+    }
+
+    if ('state_flags' in updated) {
+      if (updated.state_flags === 0) {
+        if (items[slotIndex] && 'state_flags' in items[slotIndex]) delete items[slotIndex].state_flags
+      } else {
+        items[slotIndex].state_flags = updated.state_flags
+      }
+      delete updated.state_flags
+    }
+
+    // Merge remaining updates (serial, rawFields, stats, etc.)
+    items[slotIndex] = { ...items[slotIndex], ...updated }
+    const updatedSaveData = setItemContainerData(props.jsonData, containerId, items)
+    emit('update:jsonData', updatedSaveData)
+  }
+  closeSlotItemEditor()
+}
 </script>
 
 <style scoped>
@@ -708,7 +769,7 @@ const getTabIcon = (icon?: string) => {
 .maximized-section {
   border-radius: 1rem !important;
   border: 1px solid oklch(var(--border)) !important;
-  background: linear-gradient(135deg, oklch(var(--muted) / 0.14), oklch(var(--background))); 
+  background: linear-gradient(135deg, oklch(var(--muted) / 0.14), oklch(var(--background)));
 }
 
 /* Shared styling for nested section content */
@@ -815,7 +876,7 @@ const getTabIcon = (icon?: string) => {
 }
 
 .quick-action-animate {
-  animation: quickActionPulse 0.7s cubic-bezier(.4,0,.2,1);
+  animation: quickActionPulse 0.7s cubic-bezier(.4, 0, .2, 1);
   box-shadow: 0 0 0 4px oklch(var(--accent) / 0.25), 0 2px 8px -2px oklch(var(--accent) / 0.5);
   color: oklch(var(--accent-foreground));
 }
@@ -824,7 +885,8 @@ const getTabIcon = (icon?: string) => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.1rem; /* fixed width to prevent layout shift */
+  width: 1.1rem;
+  /* fixed width to prevent layout shift */
   height: 1.1rem;
   position: relative;
 }
@@ -835,7 +897,7 @@ const getTabIcon = (icon?: string) => {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  transition: opacity 220ms cubic-bezier(.4,0,.2,1), transform 220ms cubic-bezier(.4,0,.2,1);
+  transition: opacity 220ms cubic-bezier(.4, 0, .2, 1), transform 220ms cubic-bezier(.4, 0, .2, 1);
   opacity: 1;
 }
 
