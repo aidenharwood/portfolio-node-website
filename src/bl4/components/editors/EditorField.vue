@@ -16,16 +16,18 @@
 			<div :class="inputContainerClass">
 				<!-- Serial copy button -->
 				<div v-if="props.inputType === 'string' && isSerialField" class="flex items-center gap-2">
-                  <button type="button" @click="copyToClipboard(localValue)" :class="[BUTTON_BASE, 'ml-2', 'rounded-md', 'px-3', 'font-mono']" :title="'Copy serial'">
-                    <i class="pi pi-copy"></i>
-                    <span class="truncate max-w-[24ch] ml-2">{{ localValue }}</span>
-                  </button>
-                  <!-- Serial editor quick action (open unified SerialEditor focused on serial) -->
-                  <button type="button" @click.stop="() => emit('openItemEditor', props.yamlPath)" class="ml-2 inline-flex items-center gap-2 rounded-md border px-2 py-1 text-xs">
-                    <i class="pi pi-code"></i>
-                    <span>Edit serial</span>
-                  </button>
-                </div>
+					<button type="button" @click="copyToClipboard(localValue)"
+						:class="[BUTTON_BASE, 'ml-2', 'rounded-md', 'px-3', 'font-mono']" :title="'Copy serial'">
+						<i class="pi pi-copy"></i>
+						<span class="truncate max-w-[24ch] ml-2">{{ localValue }}</span>
+					</button>
+					<!-- Serial editor quick action (open unified SerialEditor focused on serial) -->
+					<button type="button" @click.stop="() => emit('openItemEditor', props.yamlPath)"
+						class="ml-2 inline-flex items-center gap-2 rounded-md border px-2 py-1 text-xs">
+						<i class="pi pi-code"></i>
+						<span>Edit serial</span>
+					</button>
+				</div>
 
 				<input v-else-if="props.inputType === 'number'" type="number" :class="inputBaseClass"
 					:placeholder="props.placeholder" :step="props.numberStep ?? 1" :min="props.numberMin"
@@ -106,9 +108,7 @@
 								</template>
 							</div>
 
-							<button
-								type="button"
-								@click="handleArrayRemove(index)"
+							<button type="button" @click="handleArrayRemove(index)"
 								:class="[BUTTON_BASE, 'w-full', 'font-semibold', 'uppercase', 'tracking-wide', 'text-destructive', 'border-destructive/50', 'bg-destructive/10', 'sm:w-auto']">
 								<i class="pi pi-times text-xs"></i>
 								<span>Remove</span>
@@ -116,9 +116,7 @@
 						</div>
 					</div>
 
-					<button
-						type="button"
-						@click="handleArrayAdd"
+					<button type="button" @click="handleArrayAdd"
 						:class="[BUTTON_BASE, 'font-semibold', 'uppercase', 'tracking-wide']">
 						<i class="pi pi-plus text-xs"></i>
 						Add item
@@ -132,10 +130,7 @@
 							<i class="pi pi-folder"></i>
 							<span>Nested fields</span>
 						</div>
-						<button
-							v-if="props.nestedCollapsible !== false"
-							type="button"
-							@click="toggleNested"
+						<button v-if="props.nestedCollapsible !== false" type="button" @click="toggleNested"
 							:class="[BUTTON_BASE, 'rounded-md', 'px-2', 'text-muted-foreground']">
 							<i class="pi" :class="isNestedExpanded ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
 						</button>
@@ -160,12 +155,10 @@
 										<span
 											class="ml-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">#{{
 												index +
-											1 }}</span>
+												1 }}</span>
 									</span>
 								</div>
-								<button
-									type="button"
-									@click="removeObjectArrayItem(index)"
+								<button type="button" @click="removeObjectArrayItem(index)"
 									:class="[BUTTON_BASE, 'font-semibold', 'uppercase', 'tracking-wide', 'text-destructive', 'border-destructive/50', 'bg-destructive/10']">
 									<i class="pi pi-trash text-xs"></i>
 									Remove
@@ -181,19 +174,17 @@
 						</div>
 					</div>
 
-					<button
-						type="button"
-						@click="addObjectArrayItem"
-						:disabled="reachedObjectArrayLimit"
+					<button type="button" @click="addObjectArrayItem" :disabled="reachedObjectArrayLimit"
 						:class="[BUTTON_BASE, 'font-semibold', 'uppercase', 'tracking-wide', 'disabled:opacity-60']">
 						<i class="pi pi-plus text-xs"></i>
 						{{ props.objectArrayAddButtonText ?? 'Add item' }}
-						<span v-if="reachedObjectArrayLimit" class="text-xs text-muted-foreground">(max {{ props.objectArrayMaxItems }})</span>
+						<span v-if="reachedObjectArrayLimit" class="text-xs text-muted-foreground">(max {{
+							props.objectArrayMaxItems
+							}})</span>
 					</button>
 				</div>
 
-				<button v-else-if="props.inputType === 'button'" type="button"
-					@click="handleButtonClick"
+				<button v-else-if="props.inputType === 'button'" type="button" @click="handleButtonClick"
 					:class="[BUTTON_BASE, 'px-4', 'font-semibold', 'uppercase', 'tracking-wide', 'bg-primary/15', 'text-accent-foreground']">
 					<i class="pi pi-bolt text-xs"></i>
 					{{ props.semanticName }}
@@ -264,9 +255,9 @@ const reachedObjectArrayLimit = computed(() => {
 })
 
 const isSerialField = computed(() => {
-  if (!props.yamlPath) return false
-  const lowerName = (props.semanticName || '').toString().toLowerCase()
-  return String(props.yamlPath).endsWith('.serial') || lowerName.includes('serial')
+	if (!props.yamlPath) return false
+	const lowerName = (props.semanticName || '').toString().toLowerCase()
+	return String(props.yamlPath).endsWith('.serial') || lowerName.includes('serial')
 })
 
 watch(
@@ -466,27 +457,27 @@ const getObjectArrayItemDisplayValue = (item: any) => {
 		}
 	}
 
-		// If the display field contains a serial, try to decode and build a concise summary
-		if (typeof current === 'string' && current.startsWith('@U')) {
-			try {
-				const decoded = decodeItemSerial(current)
-				const typeLabel = decoded?.itemCategory ? String(decoded.itemCategory).replace(/_/g, ' ') : (decoded?.itemType || '')
-				const lvl = decoded?.stats?.level
-				const rar = decoded?.stats?.rarity
-				const p = decoded?.stats?.primaryStat
-				const s = decoded?.stats?.secondaryStat
-				const parts: string[] = []
-				if (typeLabel) parts.push(typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1))
-				if (lvl || lvl === 0) parts.push(`Lv${lvl}`)
-				if (rar || rar === 0) parts.push(`R${rar}`)
-				if (p !== undefined) parts.push(`P:${p}`)
-				if (s !== undefined) parts.push(`S:${s}`)
-				const summary = parts.length > 0 ? parts.join(' • ') : getItemDisplayName(current)
-				return summary
-			} catch (error) {
-				console.warn(`Failed to decode serial for display:`, error)
-			}
+	// If the display field contains a serial, try to decode and build a concise summary
+	if (typeof current === 'string' && current.startsWith('@U')) {
+		try {
+			const decoded = decodeItemSerial(current)
+			const typeLabel = decoded?.itemCategory ? String(decoded.itemCategory).replace(/_/g, ' ') : (decoded?.itemType || '')
+			const lvl = decoded?.stats?.level
+			const rar = decoded?.stats?.rarity
+			const p = decoded?.stats?.primaryStat
+			const s = decoded?.stats?.secondaryStat
+			const parts: string[] = []
+		if (typeLabel) parts.push(typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1))
+		if (lvl || lvl === 0) parts.push(`Lv${lvl}`)
+		if (rar || rar === 0) parts.push(`R${rar}`)
+		if (p !== undefined) parts.push(`P:${p}`)
+		if (s !== undefined) parts.push(`S:${s}`)
+		const summary = parts.length > 0 ? parts.join(' • ') : getItemDisplayName(decoded)
+		return summary
+		} catch (error) {
+			console.warn(`Failed to decode serial for display:`, error)
 		}
+	}
 
 	return current || 'Item'
 }

@@ -114,7 +114,7 @@
 
     <SerialEditor
       v-if="editingSlot && editingItem"
-      :serial="editingItem?.serial"
+      :serial="editingItem?.serial || ''"
       :flags="editingItem?.flags"
       :state_flags="editingItem?.state_flags"
       @save="saveSlotItemEditor"
@@ -503,29 +503,9 @@ const handleUnlockEverything = async () => {
 }
 
 const handleAddItemToContainer = (containerId: string) => {
-  // if (sections.length === 0) {
-  //   console.warn(`No sections found for container: ${containerId}`)
-  //   return
-  // }
-
-  const baseSection = SectionRegistry.getSection(containerId)
-
-  if (!baseSection || !('deserializeItems' in baseSection) || !('serializeItems' in baseSection)) {
-    console.warn(`Invalid section for container operations: ${containerId}`)
-    return
-  }
-
-  const section = baseSection as SlotBasedSection
-  const currentItems = section.deserializeItems(props.jsonData)
-
-  // No capacity guard: allow adding items without artificial limits
-
-  const newItem = section.createEmptyItem()
-  newItem.serial = `@NewItem${Date.now()}`
-  currentItems.unshift(newItem)
-
-  const updatedSaveData = setItemContainerData(props.jsonData, containerId, currentItems)
-  emit('update:jsonData', updatedSaveData)
+  // Open the editor in "new item" mode (slotIndex = -1)
+  // The item will be added when the user saves
+  openSlotItemEditor(containerId, -1)
 }
 
 const handleRemoveItem = (containerId: string, slotIndex: number) => {
@@ -584,11 +564,25 @@ const editingItem = ref<any | null>(null)
 
 function openSlotItemEditor(containerId: string, slotIndex: number) {
   editingSlot.value = { containerId, slotIndex }
-  try {
-    const items = getItemContainerData(props.jsonData, containerId)
-    editingItem.value = items[slotIndex] ? { ...items[slotIndex] } : null
-  } catch (error) {
-    editingItem.value = null
+  
+  if (slotIndex === -1) {
+    // New item mode - create an empty item
+    const baseSection = SectionRegistry.getSection(containerId)
+    if (baseSection && 'createEmptyItem' in baseSection) {
+      const section = baseSection as SlotBasedSection
+      editingItem.value = section.createEmptyItem()
+      editingItem.value.serial = ''
+    } else {
+      editingItem.value = { serial: '' }
+    }
+  } else {
+    // Edit existing item mode
+    try {
+      const items = getItemContainerData(props.jsonData, containerId)
+      editingItem.value = items[slotIndex] ? { ...items[slotIndex] } : null
+    } catch (error) {
+      editingItem.value = null
+    }
   }
 }
 
@@ -601,32 +595,45 @@ function saveSlotItemEditor(updated: any) {
   if (!editingSlot.value) return
   const { containerId, slotIndex } = editingSlot.value
   const items = getItemContainerData(props.jsonData, containerId)
-  if (slotIndex >= 0 && slotIndex < items.length) {
-    // If flags/state_flags are numerics, apply special omission semantics:
+  
+  // Handle flags/state_flags omission semantics
+  if ('flags' in updated && updated.flags === 0) {
+    delete updated.flags
+  }
+  if ('state_flags' in updated && updated.state_flags === 0) {
+    delete updated.state_flags
+  }
+  
+  if (slotIndex === -1) {
+    // New item mode - add to beginning of array
+    items.unshift(updated)
+  } else if (slotIndex >= 0 && slotIndex < items.length) {
+    // Edit existing item mode
+    // Remove flags/state_flags from existing item if they're 0
     if ('flags' in updated) {
-      if (updated.flags === 0) {
-        // Remove flags key to ensure YAML omits it
-        if (items[slotIndex] && 'flags' in items[slotIndex]) delete items[slotIndex].flags
-      } else {
+      if (updated.flags === undefined && items[slotIndex] && 'flags' in items[slotIndex]) {
+        delete items[slotIndex].flags
+      } else if (updated.flags !== undefined) {
         items[slotIndex].flags = updated.flags
       }
       delete updated.flags
     }
-
+    
     if ('state_flags' in updated) {
-      if (updated.state_flags === 0) {
-        if (items[slotIndex] && 'state_flags' in items[slotIndex]) delete items[slotIndex].state_flags
-      } else {
+      if (updated.state_flags === undefined && items[slotIndex] && 'state_flags' in items[slotIndex]) {
+        delete items[slotIndex].state_flags
+      } else if (updated.state_flags !== undefined) {
         items[slotIndex].state_flags = updated.state_flags
       }
       delete updated.state_flags
     }
-
+    
     // Merge remaining updates (serial, rawFields, stats, etc.)
     items[slotIndex] = { ...items[slotIndex], ...updated }
-    const updatedSaveData = setItemContainerData(props.jsonData, containerId, items)
-    emit('update:jsonData', updatedSaveData)
   }
+  
+  const updatedSaveData = setItemContainerData(props.jsonData, containerId, items)
+  emit('update:jsonData', updatedSaveData)
   closeSlotItemEditor()
 }
 </script>

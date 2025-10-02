@@ -216,16 +216,15 @@ export abstract class BaseInventorySection implements SlotBasedSection {
               variant: 'secondary' as const
             },
             {
-              id: 'edit-item',
-              icon: 'pi pi-edit',
-              label: 'Edit [WIP]',
-              variant: 'secondary' as const
-            },
-            {
               id: 'remove-item',
               icon: 'pi pi-trash',
               variant: 'danger' as const
-            }
+            },
+            {
+              id: 'edit-item',
+              icon: 'pi pi-pen-to-square',
+              variant: 'secondary' as const
+            },
           ]
         })
       }

@@ -1,10 +1,10 @@
 {
-	"folders": [
-		{
-			"path": "../../../../portfolio-node-api"
-		},
-		{
-			"path": "../../.."
-		}
-	]
+    "folders": [
+        {
+            "path": "../../../../portfolio-node-api"
+        },
+        {
+            "path": "../../.."
+        }
+    ]
 }

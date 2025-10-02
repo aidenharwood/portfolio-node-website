@@ -26,76 +26,18 @@ export const RARITY_OPTIONS: NumericDropdownOption[] = [
 
 // Manufacturer mappings (based on BL4 manufacturers)
 export const MANUFACTURER_OPTIONS: NumericDropdownOption[] = [
-  { value: 1, label: 'Atlas' },
-  { value: 2, label: 'COV' },
-  { value: 3, label: 'Dahl' },
-  { value: 4, label: 'Hyperion' },
-  { value: 5, label: 'Jakobs' },
-  { value: 6, label: 'Maliwan' },
-  { value: 7, label: 'Tediore' },
-  { value: 8, label: 'Torgue' },
-  { value: 9, label: 'Vladof' },
-  { value: 10, label: 'Gearbox' },
-  { value: 11, label: 'Eridian' },
-  { value: 12, label: 'Pangolin' },
-  { value: 13, label: 'Anshin' },
-  { value: 14, label: 'Bandit' },
-  { value: 15, label: 'Children of the Vault' },
-  { value: 16, label: 'Psycho' },
-  { value: 17, label: 'Rarity' },
-  { value: 18, label: 'Seraph' },
-  { value: 19, label: 'Stalker' },
-  { value: 20, label: 'Titan' },
-  { value: 21, label: 'Torch' },
-  { value: 22, label: 'Varkid' },
-  { value: 23, label: 'Zane' },
-  { value: 24, label: 'FL4K' },
-  { value: 25, label: 'Amara' },
-  { value: 26, label: 'Moze' },
-  { value: 27, label: 'Siren' },
-  { value: 28, label: 'Operative' },
-  { value: 29, label: 'Beastmaster' },
-  { value: 30, label: 'Gunner' },
-  { value: 31, label: 'Unknown Manufacturer' }
+  { value: 1, label: '?' },
 ]
 
 // Item class mappings (weapon types and equipment classes)
 export const ITEM_CLASS_OPTIONS: NumericDropdownOption[] = [
   // Weapons
-  { value: 1, label: 'Pistol' },
-  { value: 2, label: 'SMG' },
-  { value: 3, label: 'Assault Rifle' },
-  { value: 4, label: 'Shotgun' },
-  { value: 5, label: 'Sniper Rifle' },
-  { value: 6, label: 'Rocket Launcher' },
-  { value: 7, label: 'Grenade' },
-  { value: 8, label: 'Melee Weapon' },
-  { value: 9, label: 'Heavy Weapon' },
-  { value: 10, label: 'Shield' },
-  { value: 11, label: 'Grenade Mod' },
-  { value: 12, label: 'Class Mod' },
-  { value: 13, label: 'Artifact' },
-  { value: 14, label: 'Relic' },
-  { value: 15, label: 'Utility Item' },
-  { value: 16, label: 'Consumable' },
-  { value: 17, label: 'Mission Item' },
-  { value: 18, label: 'Currency' },
-  { value: 19, label: 'Key' },
-  { value: 20, label: 'Vehicle Part' },
-  { value: 21, label: 'Customization' },
-  { value: 22, label: 'Unknown Item Class' }
+  { value: 1, label: 'Unknown Item Class' }
 ]
 
 // Item type mappings (from serial prefixes)
 export const ITEM_TYPE_OPTIONS: StringDropdownOption[] = [
   { value: 'r', label: 'Weapon (r)' },
-  { value: 'e', label: 'Equipment Type E (e)' },
-  { value: 'd', label: 'Equipment Type D (d)' },
-  { value: 'w', label: 'Weapon Special (w)' },
-  { value: 'u', label: 'Utility (u)' },
-  { value: 'f', label: 'Consumable (f)' },
-  { value: '!', label: 'Special (!) (f)' },
-  { value: 'v', label: 'Vehicle Part (v)' }
 ]
 
 // Helper functions to get labels

@@ -1,90 +1,75 @@
 <template>
-  <section
-    class="editor-section rounded-2xl bg-card/80 shadow-sm transition hover:border-border/80"
+  <section class="editor-section rounded-2xl bg-card/80 shadow-sm transition hover:border-border/80 flex-col"
     :class="{ 'compact-section': section && section.id && section.id.includes('_slot_') }"
-    :data-collapsible="isCollapsible"
-  >
-    <div
-      class="section-header flex flex-col gap-4 border-b border-border/40 p-5 sm:flex-row sm:items-start sm:justify-between"
-      :class="isCollapsible ? 'cursor-pointer hover:bg-background/60' : ''"
-      @click="isCollapsible ? toggleSection() : undefined"
-    >
-      <div class="flex flex-1 items-start gap-4">
+    :data-collapsible="isCollapsible">
+    <div class="flex-col w-full justify-space-between">
+
+      <div class="flex" :class="isCollapsible ? 'cursor-pointer' : ''">
         <div
-          v-if="section.icon"
-          class="flex h-12 w-12 items-center justify-center rounded-xl text-2xl text-accent shadow-sm"
-        >
-          <i :class="section.icon"></i>
-        </div>
-        <div class="flex flex-col gap-2">
-          <div class="flex flex-wrap items-center gap-3">
-            <h4 class="text-base font-semibold text-foreground">{{ section.title }}</h4>
-          </div>
-          <!-- Item summary + serial for slot sections -->
-          <div v-if="isSlotSection && (itemSerial || (props.section as any)?.meta?.serial)" class="mt-1 text-xs text-muted-foreground flex flex-col gap-1">
-            <span v-if="(props.section as any)?.meta?.summary" class="font-medium">{{ (props.section as any).meta.summary }}</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="flex flex-row items-center gap-3">
-        <div v-if="section.actions?.length" class="flex flex-wrap items-center gap-2">
-          <template v-for="action in section.actions">
-            <!-- Special-case copy-serial: render icon-only and show serial text next to it -->
-            <div v-if="action.id === 'copy-serial'" :key="action.id + '-copy'" class="flex items-center gap-2">
-              <button
-                type="button"
-                :class="[BUTTON_BASE, 'px-3', 'font-mono', action.disabled ? 'opacity-60 cursor-not-allowed' : 'hover:border-muted-foreground/50']"
-                :disabled="action.disabled"
-                :title="action.label"
-                @click.stop="handleActionClick(action.id)"
-              >
-                <span class="">{{ action.label || itemSerial }}</span>
-                <i class="pi pi-copy text-sm"></i>
-              </button>
+          class="w-full border-1 rounded-lg section-header flex flex-col gap-4 border-b border-border/40 p-5 sm:flex-row sm:items-start sm:gap-6"
+          :class="isCollapsible ? 'cursor-pointer hover:bg-background/60' : ''"
+          @click="isCollapsible ? toggleSection() : undefined">
+          <div class="flex flex-1 items-start gap-4">
+            <div v-if="section.icon"
+              class="flex h-12 w-12 items-center justify-center rounded-xl text-2xl text-accent shadow-sm">
+              <i :class="section.icon"></i>
             </div>
-            <!-- Default action rendering -->
-            <button
-              v-else
-              :key="action.id + '-default'"
-              type="button"
-              :class="[BUTTON_BASE, actionButtonClass(action.variant), action.disabled ? 'opacity-60 cursor-not-allowed' : 'hover:border-muted-foreground/50', 'font-semibold', 'uppercase']"
-              :disabled="action.disabled"
-              :title="action.label"
-              @click.stop="handleActionClick(action.id)"
-            >
-              <i v-if="action.icon" :class="[action.icon, action.label ? 'text-xl' : 'text-2xl']"></i>
-              <span v-if="action.label">{{ action.label }}</span>
+            <div class="flex flex-col gap-2 w-full">
+              <div class="flex flex-wrap items-center gap-3">
+                <h4 class="text-base font-semibold text-foreground">{{ section.title }}</h4>
+              </div>
+              <!-- Item summary + serial for slot sections -->
+              <div v-if="isSlotSection && (itemSerial || (props.section as any)?.meta?.serial)"
+                class="mt-1 flex flex-col gap-1">
+                <div class="text-xs text-muted-foreground flex flex-wrap gap-2">
+                  <span v-for="pill in itemMetaPills" :key="pill"
+                    class="inline-flex items-center rounded-full bg-muted/40 px-3 py-1 font-medium text-muted-foreground">
+                    {{ pill }}
+                  </span>
+                </div>
+                <button v-if="itemSerial" type="button"
+                  :class="[BUTTON_BASE, 'mt-2', 'w-full', 'justify-between', 'px-3', 'font-mono']"
+                  title="Copy serial"
+                  @click.stop="handleSerialCopy">
+                  <span class="truncate flex-1 text-left text-xs">{{ itemSerial }}</span>
+                  <i class="pi pi-copy text-sm flex-shrink-0"></i>
+                </button>
+              </div>
+            </div>
+
+          </div>
+          <div class="flex flex-col gap-2" @click.stop>
+            <div v-if="sectionActions.length" class="flex flex-col gap-2">
+              <template v-for="action in sectionActions" :key="action.id">
+                <button type="button"
+                  :class="[BUTTON_BASE, actionButtonClass(action.variant), action.disabled ? 'opacity-60 cursor-not-allowed' : 'hover:border-muted-foreground/50', 'font-semibold', 'uppercase']"
+                  :disabled="action.disabled" :title="action.label"
+                  @click.stop="handleActionClick(action.id)">
+                  <i v-if="action.icon" :class="[action.icon, action.label ? 'text-xl' : 'text-2xl']"></i>
+                  <span v-if="action.label">{{ action.label }}</span>
+                </button>
+              </template>
+            </div>
+
+            <button v-if="isCollapsible" type="button"
+              :class="[BUTTON_BASE, 'justify-center', 'text-muted-foreground', 'bg-background/80']"
+              @click.stop="toggleSection()" :aria-expanded="expanded"
+              :aria-label="expanded ? 'Collapse section' : 'Expand section'">
+              <i class="pi" :class="expanded ? 'pi-chevron-up' : 'pi-chevron-right'"></i>
             </button>
-          </template>
+          </div>
         </div>
+      </div>
 
-        <button
-          v-if="isCollapsible"
-          type="button"
-          :class="[BUTTON_BASE, 'w-9', 'h-9', 'text-muted-foreground', 'bg-background/80']"
-          @click.stop="toggleSection()"
-          :aria-expanded="expanded"
-          :aria-label="expanded ? 'Collapse section' : 'Expand section'"
-        >
-          <i class="pi" :class="expanded ? 'pi-chevron-up' : 'pi-chevron-right'"></i>
-        </button>
+      <div v-if="hasFields && (expanded || section.collapsible === false)" class="section-content space-y-4 p-5">
+        <div class="section-fields space-y-2">
+          <EditorField v-for="field in dedupedFields" :key="field.yamlPath" v-bind="field"
+            :value="getFieldValue(field.yamlPath)" @update="(value) => handleFieldUpdate(field.yamlPath, value)"
+            @openItemEditor="(yamlPath) => emit('openItemEditor', yamlPath)" />
+        </div>
       </div>
     </div>
 
-    <div v-if="hasFields && (expanded || section.collapsible === false)" class="section-content space-y-4 p-5">
-      <div class="section-fields space-y-2">
-        <EditorField
-          v-for="field in dedupedFields"
-          :key="field.yamlPath"
-          v-bind="field"
-          :value="getFieldValue(field.yamlPath)"
-          @update="(value) => handleFieldUpdate(field.yamlPath, value)"
-          @openItemEditor="(yamlPath) => emit('openItemEditor', yamlPath)"
-        />
-      </div>
-    </div>
-    
   </section>
 </template>
 
@@ -156,6 +141,30 @@ const itemSerial = computed(() => {
 })
 
 // itemSummary is provided via section.meta.summary now; fall back to itemSerial where needed
+const itemMetaPills = computed(() => {
+  const metaAny = (props.section as any)?.meta
+  if (!metaAny) return [] as string[]
+
+  const summary = typeof metaAny.summary === 'string' ? metaAny.summary : ''
+  const parts = summary
+    .split('•')
+    .map((part: string) => part.trim())
+    .filter(Boolean)
+
+  if (parts.length) {
+    return parts
+  }
+
+  if (metaAny.serial) {
+    return [String(metaAny.serial)]
+  }
+
+  return [] as string[]
+})
+
+const sectionActions = computed(() => {
+  return (props.section.actions ?? []).filter(action => action.id !== 'copy-serial')
+})
 
 const toggleSection = () => {
   if (!isCollapsible.value) {
@@ -176,17 +185,21 @@ const handleActionClick = (actionId: string) => {
   emit('sectionAction', actionId, props.section.id)
 }
 
+const handleSerialCopy = () => {
+  emit('sectionAction', 'copy-serial', props.section.id)
+}
+
 const actionButtonClass = (variant: 'primary' | 'secondary' | 'danger' | undefined) => {
   switch (variant) {
     case 'primary':
-      return 'bg-primary/50 text-accent shadow-sm text-muted-foreground hover:text-foreground border-primary/70'
+      return 'text-primary'
     case 'danger':
-      return 'border-destructive/50 bg-destructive/15 text-destructive'
+      return ' text-destructive'
     default:
-      return 'bg-muted-foreground text-foreground'
+      return 'text-foreground'
   }
 }
 
 // Standard button base consistent with EditorField
-const BUTTON_BASE = 'inline-flex items-center justify-center h-10 gap-2 rounded-lg border px-3 text-xs'
+const BUTTON_BASE = 'inline-flex items-center h-10 gap-2 rounded-lg border px-3 text-xs'
 </script>
