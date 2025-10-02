@@ -472,7 +472,7 @@ const getObjectArrayItemDisplayValue = (item: any) => {
 		if (rar || rar === 0) parts.push(`R${rar}`)
 		if (p !== undefined) parts.push(`P:${p}`)
 		if (s !== undefined) parts.push(`S:${s}`)
-		const summary = parts.length > 0 ? parts.join(' • ') : getItemDisplayName(decoded)
+		const summary = parts.length > 0 ? parts.join(' • ') : getItemDisplayName(current)
 		return summary
 		} catch (error) {
 			console.warn(`Failed to decode serial for display:`, error)

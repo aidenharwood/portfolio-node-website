@@ -47,7 +47,12 @@
         </div>
       </div>
     </div>
-    <SerialEditor v-if="showSerialEditor" :serial="local.serial" @close="showSerialEditor=false" @update:serial="(s)=>local.serial = s" />
+    <SerialEditor
+      v-if="showSerialEditor"
+      :serial="local.serial"
+      @close="showSerialEditor = false"
+      @update:serial="(s: string) => (local.serial = s)"
+    />
   </Teleport>
 </template>
 
