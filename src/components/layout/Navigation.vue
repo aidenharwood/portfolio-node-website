@@ -46,7 +46,6 @@ const links = ref([
   { name: 'Home', route: '/', icon: 'pi-home' },
   { name: 'Blog', route: '/blog', icon: 'pi-file-edit' },
   { name: 'Projects', route: '/projects', icon: 'pi-briefcase' },
-  // { name: 'BL4 Editor', route: '/bl4-save-editor', icon: 'pi-cog' }
 ]);
 
 const isCurrentRoute = (linkRoute: string) => {

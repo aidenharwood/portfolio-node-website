@@ -7,7 +7,6 @@ import BlogList from "@/pages/BlogList.vue";
 import BlogPost from "@/pages/BlogPost.vue";
 import Projects from "@/pages/Projects.vue";
 import ProjectDetail from "@/pages/ProjectDetail.vue";
-import { BL4SaveEditor } from "@/bl4";
 import { Terminal } from "@/components";
 
 const routes = [
@@ -16,8 +15,8 @@ const routes = [
   { path: "/blog/:slug", component: PageComponent({ component: BlogPost }) },
   { path: "/projects", component: PageComponent({ component: Projects }) },
   { path: "/projects/:slug", component: PageComponent({ component: ProjectDetail }) },
-  { path: "/bl4-save-editor", component: PageComponent({ component: BL4SaveEditor, renderLayout: false }) },
   { path: '/terminal', component: PageComponent({ component: Terminal, renderLayout: false }) },
+  { path: '/bl4-save-editor', redirect: () => { window.location.href = 'https://bl4editor.aidenharwood.uk/'; } },
 ];
 
 const router = createRouter({

@@ -11,15 +11,6 @@ export { default as InfoCard } from './cards/InfoCard.vue'
 export { default as ArgoCDCard } from './cards/ArgoCDCard.vue'
 export { default as ProjectCard } from './cards/ProjectCard.vue'
 
-// BL4 Save Editor Components
-export { 
-  SteamIdInput, 
-  SaveFolderUpload, 
-  SaveFileEditor, 
-  EditorSection, 
-  EditorField 
-} from '@/bl4'
-
 // Common Components
 export { default as Terminal } from './common/Terminal.vue'
 export { default as MarkdownRenderer } from './common/MarkdownRenderer.vue'

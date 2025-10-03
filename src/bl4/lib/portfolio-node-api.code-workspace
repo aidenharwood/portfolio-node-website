@@ -4,6 +4,9 @@
             "path": "../../../../portfolio-node-api"
         },
         {
+            "path": "../../../../portfolio-node-borderlands-4-save-editor"
+        },
+        {
             "path": "../../.."
         }
     ]
